@@ -256,9 +256,9 @@ body {
   <div class="error-msg" id="rep-error">❌ Something went wrong submitting your report. Please try again.</div>
 </div>
 
-});
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+
 const WORKER_URL = "https://muddy-waterfall-4818.ksrp.workers.dev/submit-report";
 const MAX_FILES = 5;
 
@@ -267,6 +267,9 @@ let selectedFiles = [];
 const dropzone = document.getElementById("dropzone");
 const fileInput = document.getElementById("rep-files");
 const previews = document.getElementById("previews");
+const btn = document.getElementById("submit-btn");
+const successEl = document.getElementById("rep-success");
+const errorEl = document.getElementById("rep-error");
 
 dropzone.addEventListener("click", () => fileInput.click());
 
@@ -275,7 +278,9 @@ dropzone.addEventListener("dragover", (e) => {
   dropzone.classList.add("drag");
 });
 
-dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag"));
+dropzone.addEventListener("dragleave", () => {
+  dropzone.classList.remove("drag");
+});
 
 dropzone.addEventListener("drop", (e) => {
   e.preventDefault();
@@ -291,10 +296,12 @@ fileInput.addEventListener("change", () => {
 function addFiles(fileList) {
   for (const file of fileList) {
     if (!file.type.startsWith("image/")) continue;
+
     if (selectedFiles.length >= MAX_FILES) {
       alert("You can attach up to " + MAX_FILES + " images.");
       break;
     }
+
     selectedFiles.push(file);
   }
   renderPreviews();
@@ -307,33 +314,41 @@ function removeFile(index) {
 
 function renderPreviews() {
   previews.innerHTML = "";
+
   selectedFiles.forEach((file, index) => {
     const url = URL.createObjectURL(file);
+
     const div = document.createElement("div");
     div.className = "preview-item";
-    div.innerHTML = '<img src="' + url + '"><button class="remove" onclick="removeFile(' + index + ')">✕</button>';
+    div.innerHTML = `
+      <img src="${url}">
+      <button class="remove" onclick="window.removeFile(${index})">✕</button>
+    `;
+
     previews.appendChild(div);
   });
 }
 
-async function submitReport() {
+// expose for inline onclick
+window.removeFile = removeFile;
+
+window.submitReport = async function () {
   const who = document.getElementById("rep-who").value.trim();
   const role = document.getElementById("rep-role").value.trim();
   const reason = document.getElementById("rep-reason").value.trim();
+
   const evidence1 = document.getElementById("rep-evidence1").value.trim();
   const evidence2 = document.getElementById("rep-evidence2").value.trim();
   const evidence3 = document.getElementById("rep-evidence3").value.trim();
   const evidence4 = document.getElementById("rep-evidence4").value.trim();
   const evidence5 = document.getElementById("rep-evidence5").value.trim();
-  const successEl = document.getElementById("rep-success");
-  const errorEl = document.getElementById("rep-error");
-  const btn = document.getElementById("submit-btn");
 
   successEl.style.display = "none";
   errorEl.style.display = "none";
 
   if (!who || !reason) {
-    alert("Please fill in who you're reporting and what happened.");
+    errorEl.textContent = "❌ Please fill in who you're reporting and what happened.";
+    errorEl.style.display = "block";
     return;
   }
 
@@ -346,52 +361,59 @@ async function submitReport() {
   formData.append("evidence3", evidence3);
   formData.append("evidence4", evidence4);
   formData.append("evidence5", evidence5);
-  selectedFiles.forEach((file) => formData.append("images", file, file.name));
+
+  selectedFiles.forEach((file) => {
+    formData.append("images", file, file.name);
+  });
 
   btn.disabled = true;
   btn.textContent = "Submitting...";
 
   try {
-  const res = await fetch("https://muddy-waterfall-4818.ksrp.workers.dev/submit-report", {
-    method: "POST",
-    body: formData
-  });
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      body: formData
+    });
 
-  const data = await res.json().catch(() => null);
+    const data = await res.json().catch(() => null);
 
-  if (!res.ok) {
-    const msg = data?.error || "Unknown server error";
-    errorEl.textContent = "❌ " + msg;
+    if (!res.ok) {
+      const msg = data?.error || "Unknown server error";
+      errorEl.textContent = "❌ " + msg;
+      errorEl.style.display = "block";
+      return;
+    }
+
+    document.getElementById("rep-who").value = "";
+    document.getElementById("rep-role").value = "";
+    document.getElementById("rep-reason").value = "";
+    document.getElementById("rep-evidence1").value = "";
+    document.getElementById("rep-evidence2").value = "";
+    document.getElementById("rep-evidence3").value = "";
+    document.getElementById("rep-evidence4").value = "";
+    document.getElementById("rep-evidence5").value = "";
+
+    selectedFiles = [];
+    renderPreviews();
+
+    successEl.textContent =
+      "✅ " +
+      (data?.reportId
+        ? `Report submitted (ID: ${data.reportId})`
+        : "Report submitted anonymously. We'll review it shortly.");
+
+    successEl.style.display = "block";
+
+  } catch (err) {
+    console.error("Submit error:", err);
+    errorEl.textContent = "❌ Something went wrong submitting your report. Please try again.";
     errorEl.style.display = "block";
-    return;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Submit Report Anonymously";
   }
+};
 
-  document.getElementById("rep-who").value = "";
-  document.getElementById("rep-role").value = "";
-  document.getElementById("rep-reason").value = "";
-  document.getElementById("rep-evidence1").value = "";
-  document.getElementById("rep-evidence2").value = "";
-  document.getElementById("rep-evidence3").value = "";
-  document.getElementById("rep-evidence4").value = "";
-  document.getElementById("rep-evidence5").value = "";
-
-  selectedFiles = [];
-  renderPreviews();
-
-  successEl.textContent = "✅ " + (data?.reportId
-    ? `Report submitted (ID: ${data.reportId})`
-    : "Report submitted anonymously. We'll review it shortly.");
-
-  successEl.style.display = "block";
-
-} catch (err) {
-  console.error("Submit error:", err);
-  errorEl.textContent = "❌ Something went wrong submitting your report. Please try again.";
-  errorEl.style.display = "block";
-} finally {
-  btn.disabled = false;
-  btn.textContent = "Submit Report Anonymously";
-}
 });
 </script>
 
