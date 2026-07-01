@@ -72,8 +72,20 @@ body {
   letter-spacing: 0.04em;
 }
 
+.form-group .hint {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  margin-top: -2px;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
   width: 100%;
   box-sizing: border-box;
   padding: 9px 12px;
@@ -88,12 +100,16 @@ body {
 }
 
 .form-group input:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.form-group select:focus {
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
 }
 
+.form-group select { cursor: pointer; }
+
 .form-group textarea { resize: vertical; min-height: 100px; }
+.form-group textarea#rep-notes { min-height: 70px; }
 
 .dropzone {
   border: 2px dashed var(--border);
@@ -212,8 +228,31 @@ body {
   </div>
 
   <div class="form-group">
-    <label>What happened?</label>
+    <label>Type of Report</label>
+    <div class="hint">Select the category that best matches your concern. Administration will only proceed with certain cases if prior review conditions are met or if there are ongoing related reports.</div>
+    <select id="rep-type">
+      <option value="" disabled selected>Select a category...</option>
+      <option value="Rule Violation">Rule Violation</option>
+      <option value="Staff Misconduct">Staff Misconduct</option>
+      <option value="Other">Other</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Incident Description</label>
+    <div class="hint">Please describe what happened in detail. Include: what occurred, who was involved (if known), any relevant context or background, and why you believe the action was improper or against policy.</div>
     <textarea id="rep-reason" placeholder="Describe the situation in detail. Your identity will not be shared."></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>Date of Incident</label>
+    <div class="hint">Provide the approximate or exact date the event took place.</div>
+    <input type="date" id="rep-date">
+  </div>
+
+  <div class="form-group">
+    <label>Additional Notes (Optional)</label>
+    <textarea id="rep-notes" placeholder="Anything else you'd like to add..."></textarea>
   </div>
 
 <div class="form-group">
@@ -332,10 +371,21 @@ function renderPreviews() {
 // expose for inline onclick
 window.removeFile = removeFile;
 
+// Format a YYYY-MM-DD date input value as MM/DD/YYYY for display in the report
+function formatDate(isoDate) {
+  if (!isoDate) return "";
+  const [y, m, d] = isoDate.split("-");
+  if (!y || !m || !d) return isoDate;
+  return `${m}/${d}/${y}`;
+}
+
 window.submitReport = async function () {
   const who = document.getElementById("rep-who").value.trim();
   const role = document.getElementById("rep-role").value.trim();
+  const type = document.getElementById("rep-type").value.trim();
   const reason = document.getElementById("rep-reason").value.trim();
+  const incidentDateRaw = document.getElementById("rep-date").value;
+  const notes = document.getElementById("rep-notes").value.trim();
 
   const evidence1 = document.getElementById("rep-evidence1").value.trim();
   const evidence2 = document.getElementById("rep-evidence2").value.trim();
@@ -352,10 +402,25 @@ window.submitReport = async function () {
     return;
   }
 
+  if (!type) {
+    errorEl.textContent = "❌ Please select a type of report.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  if (!incidentDateRaw) {
+    errorEl.textContent = "❌ Please provide the date of the incident.";
+    errorEl.style.display = "block";
+    return;
+  }
+
   const formData = new FormData();
   formData.append("who", who);
   formData.append("role", role);
+  formData.append("type", type);
   formData.append("reason", reason);
+  formData.append("incidentDate", formatDate(incidentDateRaw));
+  formData.append("notes", notes);
   formData.append("evidence1", evidence1);
   formData.append("evidence2", evidence2);
   formData.append("evidence3", evidence3);
@@ -386,7 +451,10 @@ window.submitReport = async function () {
 
     document.getElementById("rep-who").value = "";
     document.getElementById("rep-role").value = "";
+    document.getElementById("rep-type").value = "";
     document.getElementById("rep-reason").value = "";
+    document.getElementById("rep-date").value = "";
+    document.getElementById("rep-notes").value = "";
     document.getElementById("rep-evidence1").value = "";
     document.getElementById("rep-evidence2").value = "";
     document.getElementById("rep-evidence3").value = "";
