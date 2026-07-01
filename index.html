@@ -256,7 +256,9 @@ body {
   <div class="error-msg" id="rep-error">❌ Something went wrong submitting your report. Please try again.</div>
 </div>
 
+});
 <script>
+document.addEventListener("DOMContentLoaded", () => {
 const WORKER_URL = "https://muddy-waterfall-4818.ksrp.workers.dev/submit-report";
 const MAX_FILES = 5;
 
@@ -390,6 +392,7 @@ async function submitReport() {
   btn.disabled = false;
   btn.textContent = "Submit Report Anonymously";
 }
+});
 </script>
 
 </body>
