@@ -198,8 +198,8 @@ body {
 <body>
 
 <div class="card">
-  <div class="card-title">🔒 Submit a Private Report</div>
-  <div class="card-sub">Your identity is never attached to this report.</div>
+  <div class="card-title">⛔ Submit a Report</div>
+  <div class="card-sub">Report a staff member, or community member in KSRP.</div>
 
   <div class="form-group">
     <label>Who are you reporting?</label>
@@ -251,8 +251,8 @@ body {
     <div class="previews" id="previews"></div>
   </div>
 
-  <button class="submit-btn" id="submit-btn" onclick="submitReport()">Submit Report Anonymously</button>
-  <div class="success-msg" id="rep-success">✅ Report submitted anonymously. We'll review it shortly.</div>
+  <button class="submit-btn" id="submit-btn" onclick="submitReport()">Submit Report</button>
+  <div class="success-msg" id="rep-success">✅ Report submitted. We'll review it shortly.</div>
   <div class="error-msg" id="rep-error">❌ Something went wrong submitting your report. Please try again.</div>
 </div>
 
@@ -400,7 +400,7 @@ window.submitReport = async function () {
       "✅ " +
       (data?.reportId
         ? `Report submitted (ID: ${data.reportId})`
-        : "Report submitted anonymously. We'll review it shortly.");
+        : "Report submitted. We'll review it shortly.");
 
     successEl.style.display = "block";
 
@@ -410,7 +410,7 @@ window.submitReport = async function () {
     errorEl.style.display = "block";
   } finally {
     btn.disabled = false;
-    btn.textContent = "Submit Report Anonymously";
+    btn.textContent = "Submit Report";
   }
 };
 
