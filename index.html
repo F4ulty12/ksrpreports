@@ -386,15 +386,9 @@ async function submitReport() {
   console.error("Submit error:", err);
   errorEl.textContent = "❌ Something went wrong submitting your report. Please try again.";
   errorEl.style.display = "block";
-}
-    console.error("Submit error:", err);
-    errorEl.textContent = "❌ Something went wrong submitting your report. Please try again.";
-    errorEl.style.display = "block";
-  }
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Submit Report Anonymously";
-  }
+} finally {
+  btn.disabled = false;
+  btn.textContent = "Submit Report Anonymously";
 }
 </script>
 
