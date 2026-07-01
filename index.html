@@ -350,8 +350,19 @@ async function submitReport() {
   btn.textContent = "Submitting...";
 
   try {
-    const res = await fetch("https://muddy-waterfall-4818.ksrp.workers.dev/submit-report", { method: "POST", body: formData });
-    if (!res.ok) throw new Error("Worker returned " + res.status);
+  const res = await fetch("https://muddy-waterfall-4818.ksrp.workers.dev/submit-report", {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    const msg = data?.error || "Unknown server error";
+    errorEl.textContent = "❌ " + msg;
+    errorEl.style.display = "block";
+    return;
+  }
 
     document.getElementById("rep-who").value = "";
     document.getElementById("rep-role").value = "";
@@ -363,10 +374,16 @@ async function submitReport() {
     document.getElementById("rep-evidence5").value = "";
     selectedFiles = [];
     renderPreviews();
+    successEl.textContent = "✅ " + (data?.reportId
+    ? `Report submitted (ID: ${data.reportId})`
+    : "Report submitted anonymously. We'll review it shortly.");
+
     successEl.style.display = "block";
-  } catch (err) {
+  catch (err) {
     console.error("Submit error:", err);
+    errorEl.textContent = "❌ Something went wrong submitting your report. Please try again.";
     errorEl.style.display = "block";
+  }
   } finally {
     btn.disabled = false;
     btn.textContent = "Submit Report Anonymously";
