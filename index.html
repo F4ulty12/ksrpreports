@@ -217,6 +217,21 @@ body {
   <div class="card-title">⛔ Submit a Report</div>
   <div class="card-sub">Report a staff member, or community member in KSRP.</div>
 
+  <div class="notice">
+    We'll send you status updates on this report (received, claimed, accepted, or denied) via a Discord DM. Your username and ID here are only used to contact you for more information & updates.
+  </div>
+
+  <div class="form-group">
+    <label>Your Discord Username</label>
+    <input type="text" id="rep-reporter-username" placeholder="e.g. f4ultyofficial">
+  </div>
+
+  <div class="form-group">
+    <label>Your Discord User ID</label>
+    <div class="hint">Enable Developer Mode in Discord (Settings → Advanced), then right-click your name anywhere and choose "Copy User ID."</div>
+    <input type="text" id="rep-reporter-id" placeholder="e.g. 123456789012345678" inputmode="numeric">
+  </div>
+
   <div class="form-group">
     <label>Who are you reporting?</label>
     <input type="text" id="rep-who" placeholder="Discord Username & ID">
@@ -380,6 +395,8 @@ function formatDate(isoDate) {
 }
 
 window.submitReport = async function () {
+  const reporterUsername = document.getElementById("rep-reporter-username").value.trim();
+  const reporterId = document.getElementById("rep-reporter-id").value.trim();
   const who = document.getElementById("rep-who").value.trim();
   const role = document.getElementById("rep-role").value.trim();
   const type = document.getElementById("rep-type").value.trim();
@@ -395,6 +412,18 @@ window.submitReport = async function () {
 
   successEl.style.display = "none";
   errorEl.style.display = "none";
+
+  if (!reporterUsername || !reporterId) {
+    errorEl.textContent = "❌ Please enter your Discord username and User ID so we can send you status updates.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  if (!/^\d{15,25}$/.test(reporterId)) {
+    errorEl.textContent = "❌ That doesn't look like a valid Discord User ID (it should be a long number).";
+    errorEl.style.display = "block";
+    return;
+  }
 
   if (!who || !reason) {
     errorEl.textContent = "❌ Please fill in who you're reporting and what happened.";
@@ -415,6 +444,8 @@ window.submitReport = async function () {
   }
 
   const formData = new FormData();
+  formData.append("reporterUsername", reporterUsername);
+  formData.append("reporterId", reporterId);
   formData.append("who", who);
   formData.append("role", role);
   formData.append("type", type);
@@ -449,6 +480,8 @@ window.submitReport = async function () {
       return;
     }
 
+    document.getElementById("rep-reporter-username").value = "";
+    document.getElementById("rep-reporter-id").value = "";
     document.getElementById("rep-who").value = "";
     document.getElementById("rep-role").value = "";
     document.getElementById("rep-type").value = "";
