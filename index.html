@@ -364,22 +364,29 @@ async function submitReport() {
     return;
   }
 
-    document.getElementById("rep-who").value = "";
-    document.getElementById("rep-role").value = "";
-    document.getElementById("rep-reason").value = "";
-    document.getElementById("rep-evidence1").value = "";
-    document.getElementById("rep-evidence2").value = "";
-    document.getElementById("rep-evidence3").value = "";
-    document.getElementById("rep-evidence4").value = "";
-    document.getElementById("rep-evidence5").value = "";
-    selectedFiles = [];
-    renderPreviews();
-    successEl.textContent = "✅ " + (data?.reportId
+  document.getElementById("rep-who").value = "";
+  document.getElementById("rep-role").value = "";
+  document.getElementById("rep-reason").value = "";
+  document.getElementById("rep-evidence1").value = "";
+  document.getElementById("rep-evidence2").value = "";
+  document.getElementById("rep-evidence3").value = "";
+  document.getElementById("rep-evidence4").value = "";
+  document.getElementById("rep-evidence5").value = "";
+
+  selectedFiles = [];
+  renderPreviews();
+
+  successEl.textContent = "✅ " + (data?.reportId
     ? `Report submitted (ID: ${data.reportId})`
     : "Report submitted anonymously. We'll review it shortly.");
 
-    successEl.style.display = "block";
-  catch (err) {
+  successEl.style.display = "block";
+
+} catch (err) {
+  console.error("Submit error:", err);
+  errorEl.textContent = "❌ Something went wrong submitting your report. Please try again.";
+  errorEl.style.display = "block";
+}
     console.error("Submit error:", err);
     errorEl.textContent = "❌ Something went wrong submitting your report. Please try again.";
     errorEl.style.display = "block";
