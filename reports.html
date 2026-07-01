@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="icon" type="image/png" href="loho.png">
+<title>Submit a Report</title>
+
+<style>
+:root {
+  --bg: #f4f6f8;
+  --text: #111827;
+  --muted: #4b5563;
+  --border: #e5e7eb;
+}
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 16px;
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 26px;
+  max-width: 560px;
+  width: 100%;
+}
+
+.card-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.notice {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #9a3412;
+  margin-bottom: 18px;
+  line-height: 1.6;
+}
+
+.form-group { margin-bottom: 14px; }
+
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  background: white;
+  transition: 0.2s ease;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+
+.form-group textarea { resize: vertical; min-height: 100px; }
+
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 22px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: 0.2s ease;
+  background: #fafafa;
+}
+
+.dropzone.drag {
+  border-color: #6366f1;
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.dropzone input { display: none; }
+
+.previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.preview-item {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.preview-item .remove {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  background: rgba(17,24,39,0.75);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.submit-btn {
+  padding: 10px 22px;
+  background: #111827;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+  width: 100%;
+}
+
+.submit-btn:hover { background: #1f2937; }
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.success-msg {
+  display: none;
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.error-msg {
+  display: none;
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <div class="card-title">🔒 Submit a Private Report</div>
+  <div class="card-sub">Your identity is never attached to this report.</div>
+
+  <div class="notice">
+    ⚠️ <strong>Use this responsibly.</strong> Private reports are for situations where you feel uncomfortable reporting through normal channels. Abuse of this system will result in it being removed entirely.
+  </div>
+
+  <div class="form-group">
+    <label>Who are you reporting?</label>
+    <input type="text" id="rep-who" placeholder="Name or Roblox username">
+  </div>
+
+  <div class="form-group">
+    <label>Their Role / Position</label>
+    <input type="text" id="rep-role" placeholder="e.g. Board of Governors, Business Owner...">
+  </div>
+
+  <div class="form-group">
+    <label>What happened?</label>
+    <textarea id="rep-reason" placeholder="Describe the situation in detail. Your identity will not be shared."></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>Evidence link (optional)</label>
+    <input type="text" id="rep-evidence" placeholder="Paste a link to a video or additional evidence (optional)">
+  </div>
+
+  <div class="form-group">
+    <label>Screenshots / Photos (optional)</label>
+    <div class="dropzone" id="dropzone">
+      📎 Click to choose images, or drag & drop them here<br>
+      <span style="font-size:11px;">PNG / JPG, up to 5 files</span>
+      <input type="file" id="rep-files" accept="image/*" multiple>
+    </div>
+    <div class="previews" id="previews"></div>
+  </div>
+
+  <button class="submit-btn" id="submit-btn" onclick="submitReport()">Submit Report Anonymously</button>
+  <div class="success-msg" id="rep-success">✅ Report submitted anonymously. We'll review it shortly.</div>
+  <div class="error-msg" id="rep-error">❌ Something went wrong submitting your report. Please try again.</div>
+</div>
+
+<script>
+const WORKER_URL = "https://civops-webhook.ksrp.workers.dev/submit-report";
+const MAX_FILES = 5;
+
+let selectedFiles = [];
+
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("rep-files");
+const previews = document.getElementById("previews");
+
+dropzone.addEventListener("click", () => fileInput.click());
+
+dropzone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropzone.classList.add("drag");
+});
+
+dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag"));
+
+dropzone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropzone.classList.remove("drag");
+  addFiles(e.dataTransfer.files);
+});
+
+fileInput.addEventListener("change", () => {
+  addFiles(fileInput.files);
+  fileInput.value = "";
+});
+
+function addFiles(fileList) {
+  for (const file of fileList) {
+    if (!file.type.startsWith("image/")) continue;
+    if (selectedFiles.length >= MAX_FILES) {
+      alert("You can attach up to " + MAX_FILES + " images.");
+      break;
+    }
+    selectedFiles.push(file);
+  }
+  renderPreviews();
+}
+
+function removeFile(index) {
+  selectedFiles.splice(index, 1);
+  renderPreviews();
+}
+
+function renderPreviews() {
+  previews.innerHTML = "";
+  selectedFiles.forEach((file, index) => {
+    const url = URL.createObjectURL(file);
+    const div = document.createElement("div");
+    div.className = "preview-item";
+    div.innerHTML = '<img src="' + url + '"><button class="remove" onclick="removeFile(' + index + ')">✕</button>';
+    previews.appendChild(div);
+  });
+}
+
+async function submitReport() {
+  const who = document.getElementById("rep-who").value.trim();
+  const role = document.getElementById("rep-role").value.trim();
+  const reason = document.getElementById("rep-reason").value.trim();
+  const evidence = document.getElementById("rep-evidence").value.trim();
+  const successEl = document.getElementById("rep-success");
+  const errorEl = document.getElementById("rep-error");
+  const btn = document.getElementById("submit-btn");
+
+  successEl.style.display = "none";
+  errorEl.style.display = "none";
+
+  if (!who || !reason) {
+    alert("Please fill in who you're reporting and what happened.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("who", who);
+  formData.append("role", role);
+  formData.append("reason", reason);
+  formData.append("evidence", evidence);
+  selectedFiles.forEach((file) => formData.append("images", file, file.name));
+
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
+
+  try {
+    const res = await fetch(WORKER_URL, { method: "POST", body: formData });
+    if (!res.ok) throw new Error("Worker returned " + res.status);
+
+    document.getElementById("rep-who").value = "";
+    document.getElementById("rep-role").value = "";
+    document.getElementById("rep-reason").value = "";
+    document.getElementById("rep-evidence").value = "";
+    selectedFiles = [];
+    renderPreviews();
+    successEl.style.display = "block";
+  } catch (err) {
+    console.error("Submit error:", err);
+    errorEl.style.display = "block";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Submit Report Anonymously";
+  }
+}
+</script>
+
+</body>
+</html>
