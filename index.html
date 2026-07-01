@@ -241,7 +241,7 @@ body {
 </div>
 
 <script>
-const WORKER_URL = "https://muddy-waterfall-4818.ksrp.workers.dev";
+const WORKER_URL = "https://muddy-waterfall-4818.ksrp.workers.dev/submit-report";
 const MAX_FILES = 5;
 
 let selectedFiles = [];
@@ -326,7 +326,7 @@ async function submitReport() {
   btn.textContent = "Submitting...";
 
   try {
-    const res = await fetch("https://muddy-waterfall-4818.ksrp.workers.dev", { method: "POST", body: formData });
+    const res = await fetch("https://muddy-waterfall-4818.ksrp.workers.dev/submit-report", { method: "POST", body: formData });
     if (!res.ok) throw new Error("Worker returned " + res.status);
 
     document.getElementById("rep-who").value = "";
