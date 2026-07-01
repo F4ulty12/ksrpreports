@@ -201,10 +201,6 @@ body {
   <div class="card-title">🔒 Submit a Private Report</div>
   <div class="card-sub">Your identity is never attached to this report.</div>
 
-  <div class="notice">
-    ⚠️ <strong>Use this responsibly.</strong> Private reports are for situations where you feel uncomfortable reporting through normal channels. Abuse of this system will result in it being removed entirely.
-  </div>
-
   <div class="form-group">
     <label>Who are you reporting?</label>
     <input type="text" id="rep-who" placeholder="Discord Username & ID">
@@ -220,12 +216,32 @@ body {
     <textarea id="rep-reason" placeholder="Describe the situation in detail. Your identity will not be shared."></textarea>
   </div>
 
-  <div class="form-group">
-    <label>Evidence link (optional)</label>
-    <input type="text" id="rep-evidence" placeholder="Paste a link to a video or additional evidence (optional)">
-  </div>
+<div class="form-group">
+  <label>Evidence Link #1</label>
+  <input type="text" id="rep-evidence1" placeholder="https://...">
+</div>
 
-  <div class="form-group">
+<div class="form-group">
+  <label>Evidence Link #2</label>
+  <input type="text" id="rep-evidence2" placeholder="https://...">
+</div>
+
+<div class="form-group">
+  <label>Evidence Link #3</label>
+  <input type="text" id="rep-evidence3" placeholder="https://...">
+</div>
+
+<div class="form-group">
+  <label>Evidence Link #4</label>
+  <input type="text" id="rep-evidence4" placeholder="https://...">
+</div>
+
+<div class="form-group">
+  <label>Evidence Link #5</label>
+  <input type="text" id="rep-evidence5" placeholder="https://...">
+</div>
+
+<div class="form-group">
     <label>Screenshots / Photos (optional)</label>
     <div class="dropzone" id="dropzone">
       📎 Click to choose images, or drag & drop them here<br>
@@ -302,7 +318,11 @@ async function submitReport() {
   const who = document.getElementById("rep-who").value.trim();
   const role = document.getElementById("rep-role").value.trim();
   const reason = document.getElementById("rep-reason").value.trim();
-  const evidence = document.getElementById("rep-evidence").value.trim();
+  const evidence1 = document.getElementById("rep-evidence1").value.trim();
+  const evidence2 = document.getElementById("rep-evidence2").value.trim();
+  const evidence3 = document.getElementById("rep-evidence3").value.trim();
+  const evidence4 = document.getElementById("rep-evidence4").value.trim();
+  const evidence5 = document.getElementById("rep-evidence5").value.trim();
   const successEl = document.getElementById("rep-success");
   const errorEl = document.getElementById("rep-error");
   const btn = document.getElementById("submit-btn");
@@ -319,7 +339,11 @@ async function submitReport() {
   formData.append("who", who);
   formData.append("role", role);
   formData.append("reason", reason);
-  formData.append("evidence", evidence);
+  formData.append("evidence1", evidence1);
+  formData.append("evidence2", evidence2);
+  formData.append("evidence3", evidence3);
+  formData.append("evidence4", evidence4);
+  formData.append("evidence5", evidence5);
   selectedFiles.forEach((file) => formData.append("images", file, file.name));
 
   btn.disabled = true;
@@ -332,7 +356,11 @@ async function submitReport() {
     document.getElementById("rep-who").value = "";
     document.getElementById("rep-role").value = "";
     document.getElementById("rep-reason").value = "";
-    document.getElementById("rep-evidence").value = "";
+    document.getElementById("rep-evidence1").value = "";
+    document.getElementById("rep-evidence2").value = "";
+    document.getElementById("rep-evidence3").value = "";
+    document.getElementById("rep-evidence4").value = "";
+    document.getElementById("rep-evidence5").value = "";
     selectedFiles = [];
     renderPreviews();
     successEl.style.display = "block";
