@@ -271,7 +271,8 @@ body {
   </div>
 
 <div class="form-group">
-  <label>Evidence Link #1 (REQUIRED)</label>
+  <label>Evidence Link #1</label>
+  <div class="hint" id="evidence-hint">Required unless you attach at least one screenshot below.</div>
   <input type="text" id="rep-evidence1" placeholder="https://...">
 </div>
 
@@ -296,7 +297,8 @@ body {
 </div>
 
 <div class="form-group">
-    <label>Screenshots / Photos (OPTIONAL)</label>
+    <label>Screenshots / Photos</label>
+    <div class="hint">Required unless you provide at least one evidence link above.</div>
     <div class="dropzone" id="dropzone">
       📎 Click to choose images, or drag & drop them here<br>
       <span style="font-size:11px;">PNG / JPG, up to 5 files</span>
@@ -410,6 +412,9 @@ window.submitReport = async function () {
   const evidence4 = document.getElementById("rep-evidence4").value.trim();
   const evidence5 = document.getElementById("rep-evidence5").value.trim();
 
+  const hasEvidenceLink = !!(evidence1 || evidence2 || evidence3 || evidence4 || evidence5);
+  const hasImages = selectedFiles.length > 0;
+
   successEl.style.display = "none";
   errorEl.style.display = "none";
 
@@ -439,6 +444,12 @@ window.submitReport = async function () {
 
   if (!incidentDateRaw) {
     errorEl.textContent = "❌ Please provide the date of the incident.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  if (!hasEvidenceLink && !hasImages) {
+    errorEl.textContent = "❌ Please provide at least one evidence link, or attach at least one screenshot.";
     errorEl.style.display = "block";
     return;
   }
