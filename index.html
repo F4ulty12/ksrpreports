@@ -425,6 +425,12 @@ window.submitReport = async function () {
     return;
   }
 
+  const snowflakePattern = /^\d{17,20}$/;
+if (!snowflakePattern.test(reporterId)) {
+  showError("❌ That doesn't look like a valid Discord User ID. It should be 17–20 numbers, no letters or symbols.");
+  return;
+}
+
   if (!/^\d{15,25}$/.test(reporterId)) {
     errorEl.textContent = "❌ That doesn't look like a valid Discord User ID (it should be a long number).";
     errorEl.style.display = "block";
