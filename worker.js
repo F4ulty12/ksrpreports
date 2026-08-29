@@ -34,9 +34,14 @@ async function handleSubmit(request, env) {
   const reporterUsername = (form.get("reporter_username") || "").toString().trim();
   const reporterId = (form.get("reporter_id") || "").toString().trim();
   const files = form.getAll("images").filter((f) => f instanceof File && f.size > 0).slice(0, 5);
- 
+
   if (!who || !reason || !reporterUsername || !reporterId) {
     return json({ error: "Missing required fields" }, 400);
+  }
+
+  const snowflakePattern = /^\d{17,20}$/;
+  if (!snowflakePattern.test(reporterId)) {
+    return json({ error: "Invalid Discord User ID format" }, 400);
   }
  
   const reportId = crypto.randomUUID().slice(0, 8);
