@@ -31,9 +31,11 @@ async function handleSubmit(request, env) {
   const role = (form.get("role") || "").toString().trim() || "Not specified";
   const reason = (form.get("reason") || "").toString().trim();
   const evidence = (form.get("evidence") || "").toString().trim();
+  const reporterUsername = (form.get("reporter_username") || "").toString().trim();
+  const reporterId = (form.get("reporter_id") || "").toString().trim();
   const files = form.getAll("images").filter((f) => f instanceof File && f.size > 0).slice(0, 5);
  
-  if (!who || !reason) {
+  if (!who || !reason || !reporterUsername || !reporterId) {
     return json({ error: "Missing required fields" }, 400);
   }
  
@@ -116,7 +118,12 @@ async function handleSubmit(request, env) {
   // Remember the message location in case you ever need to look it up by reportId
   await env.CLAIMS.put(
     `msg:${reportId}`,
-    JSON.stringify({ channel_id: message.channel_id, message_id: message.id }),
+    JSON.stringify({
+      channel_id: message.channel_id,
+      message_id: message.id,
+      reporter_username: reporterUsername,
+      reporter_id: reporterId
+    }),
     { expirationTtl: 60 * 60 * 24 * 180 } // 180 days
   );
  
