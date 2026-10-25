@@ -601,7 +601,8 @@ body.maintenance .card { display: none; }
 (function () {
   const STATUS_URL = "https://api.ksrpreports.com/maintenance-status";
   const BYPASS_URL = "https://api.ksrpreports.com/maintenance-bypass";
-  const POLL_MS = 60 * 1000;
+  const POLL_MS = 5 * 1000;      // how often the page asks if maintenance changed
+  const VERIFY_MS = 60 * 1000;   // how often a staff key is re-checked
 
   const overlay = document.getElementById("maintenance");
   const bar = document.getElementById("staff-bar");
@@ -616,6 +617,8 @@ body.maintenance .card { display: none; }
   let staffKey = null;
   let bypassEpoch = null; // which maintenance session the key was used in
   let lastEpoch = null;
+  let lastVerified = 0;
+  let checking = false;
 
   function fitBar() {
     document.body.style.paddingTop = bar.hidden ? "" : (bar.offsetHeight + 24) + "px";
@@ -647,6 +650,8 @@ body.maintenance .card { display: none; }
   }
 
   async function check() {
+    if (checking) return;
+    checking = true;
     try {
       const res = await fetch(STATUS_URL, { cache: "no-store" });
       if (!res.ok) throw new Error("status " + res.status);
@@ -660,13 +665,20 @@ body.maintenance .card { display: none; }
       if (staffKey && bypassEpoch !== lastEpoch) dropStaff();
 
       if (staffKey) {
-        if (await verifyKey(staffKey)) { apply(true, true); return; }
+        // Re-check the key now and then, not on every poll.
+        if (Date.now() - lastVerified < VERIFY_MS || await verifyKey(staffKey)) {
+          lastVerified = Date.now();
+          apply(true, true);
+          return;
+        }
         dropStaff();
       }
       apply(true, false);
     } catch (err) {
-      // If the status can't be fetched, leave the site usable.
+      // If the status can't be fetched, keep whatever the page is showing now.
       document.body.classList.remove("checking");
+    } finally {
+      checking = false;
     }
   }
 
@@ -683,6 +695,7 @@ body.maintenance .card { display: none; }
     if (await verifyKey(key)) {
       staffKey = key;
       bypassEpoch = lastEpoch;
+      lastVerified = Date.now();
       keyInput.value = "";
       panel.hidden = true;
       apply(true, true);
@@ -702,6 +715,10 @@ body.maintenance .card { display: none; }
 
   check();
   setInterval(() => { if (!document.hidden) check(); }, POLL_MS);
+
+  // Catch up right away when the tab comes back or the connection returns.
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
+  window.addEventListener("online", check);
 })();
 </script>
 
