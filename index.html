@@ -294,10 +294,127 @@ body {
 }
 
 .discord-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ---------- maintenance screen ---------- */
+body.checking .card { visibility: hidden; }
+body.maintenance .card { display: none; }
+
+.maint {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.maint-box {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 36px 30px 30px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+}
+
+.gears { position: relative; width: 120px; height: 84px; margin: 0 auto 18px; color: #6366f1; }
+.gears svg { position: absolute; }
+.gear-big { width: 70px; height: 70px; left: 8px; top: 4px; animation: spin 6s linear infinite; }
+.gear-small { width: 48px; height: 48px; left: 62px; top: 36px; color: #a5b4fc; animation: spin 4s linear infinite reverse; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.maint-box h1 { font-size: 19px; margin: 0 0 8px; }
+.maint-box p { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0 0 22px; }
+
+.maint-bar { height: 6px; background: #eef2ff; border-radius: 99px; overflow: hidden; margin-bottom: 14px; }
+.maint-bar span {
+  display: block;
+  height: 100%;
+  width: 35%;
+  background: #6366f1;
+  border-radius: 99px;
+  animation: slide 1.6s ease-in-out infinite;
+}
+@keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+
+.maint-status { font-size: 12px; color: var(--muted); }
+.dots i {
+  display: inline-block;
+  width: 4px; height: 4px;
+  margin-left: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: blink 1.2s infinite;
+}
+.dots i:nth-child(2) { animation-delay: 0.2s; }
+.dots i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .gear-big, .gear-small, .maint-bar span, .dots i { animation: none; }
+}
+
+.maint-staff { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); }
+.maint-staff button.link {
+  background: none; border: none; padding: 0;
+  font-size: 12px; font-family: Arial, Helvetica, sans-serif;
+  color: var(--muted); cursor: pointer; text-decoration: underline;
+}
+.maint-staff button.link:hover { color: var(--text); }
+.maint-keyrow { display: flex; gap: 8px; margin-top: 12px; }
+.maint-keyrow input {
+  flex: 1; min-width: 0; padding: 9px 12px;
+  border: 1px solid var(--border); border-radius: 8px;
+  font-size: 13px; font-family: Arial, Helvetica, sans-serif; outline: none;
+}
+.maint-keyrow input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+.maint-keyrow button {
+  padding: 9px 16px; background: #111827; color: white; border: none;
+  border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.maint-keyrow button:disabled { opacity: 0.6; cursor: not-allowed; }
+.maint-keyerr { font-size: 12px; color: #991b1b; margin-top: 8px; }
+
+.staff-banner {
+  position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+  z-index: 9000; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
+  font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 99px;
+}
 </style>
 </head>
 
-<body>
+<body class="checking">
+
+<div id="maint-banner" class="staff-banner" hidden>Maintenance is on. You have staff access.</div>
+
+<div id="maintenance" class="maint" hidden role="alert" aria-live="polite">
+  <div class="maint-box">
+    <div class="gears">
+      <svg class="gear-big" viewBox="0 0 70 70" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="35" cy="35" r="26" stroke-width="9" stroke-dasharray="5.11 5.11"/><circle cx="35" cy="35" r="21" stroke-width="5"/><circle cx="35" cy="35" r="7" stroke-width="4"/></svg>
+      <svg class="gear-small" viewBox="0 0 70 70" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="35" cy="35" r="26" stroke-width="9" stroke-dasharray="5.83 5.83"/><circle cx="35" cy="35" r="21" stroke-width="5"/><circle cx="35" cy="35" r="7" stroke-width="4"/></svg>
+    </div>
+    <h1>Maintenance in progress</h1>
+    <p>The report system is temporarily down while we make improvements. Please check back soon.</p>
+    <div class="maint-bar"><span></span></div>
+    <div class="maint-status">Checking again automatically<span class="dots"><i></i><i></i><i></i></span></div>
+    <div class="maint-staff">
+      <button type="button" class="link" id="maint-staff-toggle">Staff access</button>
+      <div id="maint-staff-panel" hidden>
+        <div class="maint-keyrow">
+          <input type="password" id="maint-key" placeholder="Access key" autocomplete="off">
+          <button type="button" id="maint-key-btn">Enter</button>
+        </div>
+        <div class="maint-keyerr" id="maint-key-err" hidden>That key didn't work.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <div class="card">
 
@@ -424,6 +541,95 @@ body {
   </div>
 
 </div>
+
+<script>
+// ----- maintenance check -----
+(function () {
+  const STATUS_URL = "https://api.ksrpreports.com/maintenance-status";
+  const BYPASS_URL = "https://api.ksrpreports.com/maintenance-bypass";
+  const KEY_STORE = "ksrp_maint_key";
+  const POLL_MS = 60 * 1000;
+
+  const overlay = document.getElementById("maintenance");
+  const banner = document.getElementById("maint-banner");
+  const toggle = document.getElementById("maint-staff-toggle");
+  const panel = document.getElementById("maint-staff-panel");
+  const keyInput = document.getElementById("maint-key");
+  const keyBtn = document.getElementById("maint-key-btn");
+  const keyErr = document.getElementById("maint-key-err");
+
+  function getKey() { try { return sessionStorage.getItem(KEY_STORE); } catch (e) { return null; } }
+  function setKey(k) { try { k ? sessionStorage.setItem(KEY_STORE, k) : sessionStorage.removeItem(KEY_STORE); } catch (e) {} }
+
+  function apply(maintenanceOn, staffBypass) {
+    document.body.classList.remove("checking");
+    const blocked = maintenanceOn && !staffBypass;
+    document.body.classList.toggle("maintenance", blocked);
+    overlay.hidden = !blocked;
+    banner.hidden = !(maintenanceOn && staffBypass);
+  }
+
+  async function verifyKey(key) {
+    try {
+      const res = await fetch(BYPASS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key })
+      });
+      return res.ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function check() {
+    try {
+      const res = await fetch(STATUS_URL, { cache: "no-store" });
+      if (!res.ok) throw new Error("status " + res.status);
+      const data = await res.json();
+      const on = data.enabled === true;
+
+      if (on && getKey()) {
+        if (await verifyKey(getKey())) { apply(true, true); return; }
+        setKey(null); // stored key no longer valid
+      }
+      apply(on, false);
+    } catch (err) {
+      // If the status can't be fetched, leave the site usable.
+      document.body.classList.remove("checking");
+    }
+  }
+
+  toggle.addEventListener("click", () => {
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) keyInput.focus();
+  });
+
+  async function submitKey() {
+    const key = keyInput.value.trim();
+    if (!key) return;
+    keyBtn.disabled = true;
+    keyErr.hidden = true;
+    if (await verifyKey(key)) {
+      setKey(key);
+      keyInput.value = "";
+      apply(true, true);
+    } else {
+      keyErr.hidden = false;
+    }
+    keyBtn.disabled = false;
+  }
+
+  keyBtn.addEventListener("click", submitKey);
+  keyInput.addEventListener("keydown", (e) => { if (e.key === "Enter") submitKey(); });
+
+  // Never leave the page blank if the check hangs.
+  setTimeout(() => document.body.classList.remove("checking"), 4000);
+
+  check();
+  setInterval(() => { if (!document.hidden) check(); }, POLL_MS);
+})();
+</script>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
