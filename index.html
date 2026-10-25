@@ -314,32 +314,41 @@ body.maintenance .card { display: none; }
   background: white;
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 36px 30px 30px;
+  padding: 34px 30px 26px;
   max-width: 420px;
   width: 100%;
   text-align: center;
+  animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
-.gears { position: relative; width: 120px; height: 84px; margin: 0 auto 18px; color: #6366f1; }
-.gears svg { position: absolute; }
-.gear-big { width: 70px; height: 70px; left: 8px; top: 4px; animation: spin 6s linear infinite; }
-.gear-small { width: 48px; height: 48px; left: 62px; top: 36px; color: #a5b4fc; animation: spin 4s linear infinite reverse; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
 
+.gears { width: 190px; margin: 0 auto 18px; }
+.gears svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.g-big   { animation: spin 9s linear infinite; }
+.g-small { animation: spin 5.625s linear infinite reverse; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .maint-box h1 { font-size: 19px; margin: 0 0 8px; }
-.maint-box p { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0 0 22px; }
+.maint-box p  { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0 0 22px; }
 
-.maint-bar { height: 6px; background: #eef2ff; border-radius: 99px; overflow: hidden; margin-bottom: 14px; }
+.maint-bar { position: relative; height: 6px; background: #eef2ff; border-radius: 99px; overflow: hidden; margin-bottom: 14px; }
 .maint-bar span {
-  display: block;
-  height: 100%;
-  width: 35%;
-  background: #6366f1;
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 40%;
   border-radius: 99px;
-  animation: slide 1.6s ease-in-out infinite;
+  background: linear-gradient(90deg, #a5b4fc, #6366f1);
+  animation: slide 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
-@keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+@keyframes slide {
+  0%   { left: -40%; }
+  100% { left: 100%; }
+}
 
 .maint-status { font-size: 12px; color: var(--muted); }
 .dots i {
@@ -354,11 +363,7 @@ body.maintenance .card { display: none; }
 .dots i:nth-child(3) { animation-delay: 0.4s; }
 @keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
 
-@media (prefers-reduced-motion: reduce) {
-  .gear-big, .gear-small, .maint-bar span, .dots i { animation: none; }
-}
-
-.maint-staff { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); }
+.maint-staff { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--border); }
 .maint-staff button.link {
   background: none; border: none; padding: 0;
   font-size: 12px; font-family: Arial, Helvetica, sans-serif;
@@ -380,23 +385,73 @@ body.maintenance .card { display: none; }
 .maint-keyrow button:disabled { opacity: 0.6; cursor: not-allowed; }
 .maint-keyerr { font-size: 12px; color: #991b1b; margin-top: 8px; }
 
-.staff-banner {
-  position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-  z-index: 9000; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
-  font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 99px;
+/* staff bar (shown to staff who bypassed maintenance) */
+.staff-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 9000;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+  padding: 10px 16px;
+  background: #111827;
+  color: #e5e7eb;
+  font-size: 12.5px;
+  line-height: 1.4;
+  text-align: center;
+}
+.staff-bar strong { color: white; }
+.pulse-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 0 0 rgba(245,158,11,0.6);
+  animation: pulse 1.8s infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(245,158,11,0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(245,158,11,0); }
+  100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+}
+.staff-bar button {
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: Arial, Helvetica, sans-serif;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+.staff-bar button:hover { background: rgba(255,255,255,0.12); }
+
+@media (prefers-reduced-motion: reduce) {
+  .maint-box, .g-big, .g-small, .maint-bar span, .dots i, .pulse-dot { animation: none; }
+  .maint-bar span { left: 0; width: 40%; }
 }
 </style>
 </head>
 
 <body class="checking">
 
-<div id="maint-banner" class="staff-banner" hidden>Maintenance is on. You have staff access.</div>
+<div id="staff-bar" class="staff-bar" hidden>
+  <span class="pulse-dot"></span>
+  <span><strong>Maintenance mode is on.</strong> You're viewing the site with staff access. Visitors see the maintenance page.</span>
+  <button type="button" id="staff-exit">Exit staff access</button>
+</div>
 
 <div id="maintenance" class="maint" hidden role="alert" aria-live="polite">
   <div class="maint-box">
     <div class="gears">
-      <svg class="gear-big" viewBox="0 0 70 70" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="35" cy="35" r="26" stroke-width="9" stroke-dasharray="5.11 5.11"/><circle cx="35" cy="35" r="21" stroke-width="5"/><circle cx="35" cy="35" r="7" stroke-width="4"/></svg>
-      <svg class="gear-small" viewBox="0 0 70 70" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="35" cy="35" r="26" stroke-width="9" stroke-dasharray="5.83 5.83"/><circle cx="35" cy="35" r="21" stroke-width="5"/><circle cx="35" cy="35" r="7" stroke-width="4"/></svg>
+      <svg viewBox="0 0 146 119" aria-hidden="true">
+        <g transform="rotate(32.00 58.0 52.0)"><g class="g-big" style="transform-origin:58.0px 52.0px"><path d="M 93.81 48.33 L 101.93 49.58 L 101.93 54.42 L 93.81 55.67 A 36.0 36.0 0 0 1 92.49 62.31 L 99.51 66.58 L 97.66 71.05 L 89.68 69.09 A 36.0 36.0 0 0 1 85.92 74.73 L 90.78 81.36 L 87.36 84.78 L 80.73 79.92 A 36.0 36.0 0 0 1 75.09 83.68 L 77.05 91.66 L 72.58 93.51 L 68.31 86.49 A 36.0 36.0 0 0 1 61.67 87.81 L 60.42 95.93 L 55.58 95.93 L 54.33 87.81 A 36.0 36.0 0 0 1 47.69 86.49 L 43.42 93.51 L 38.95 91.66 L 40.91 83.68 A 36.0 36.0 0 0 1 35.27 79.92 L 28.64 84.78 L 25.22 81.36 L 30.08 74.73 A 36.0 36.0 0 0 1 26.32 69.09 L 18.34 71.05 L 16.49 66.58 L 23.51 62.31 A 36.0 36.0 0 0 1 22.19 55.67 L 14.07 54.42 L 14.07 49.58 L 22.19 48.33 A 36.0 36.0 0 0 1 23.51 41.69 L 16.49 37.42 L 18.34 32.95 L 26.32 34.91 A 36.0 36.0 0 0 1 30.08 29.27 L 25.22 22.64 L 28.64 19.22 L 35.27 24.08 A 36.0 36.0 0 0 1 40.91 20.32 L 38.95 12.34 L 43.42 10.49 L 47.69 17.51 A 36.0 36.0 0 0 1 54.33 16.19 L 55.58 8.07 L 60.42 8.07 L 61.67 16.19 A 36.0 36.0 0 0 1 68.31 17.51 L 72.58 10.49 L 77.05 12.34 L 75.09 20.32 A 36.0 36.0 0 0 1 80.73 24.08 L 87.36 19.22 L 90.78 22.64 L 85.92 29.27 A 36.0 36.0 0 0 1 89.68 34.91 L 97.66 32.95 L 99.51 37.42 L 92.49 41.69 A 36.0 36.0 0 0 1 93.81 48.33 Z M 69.0 52.0 A 11 11 0 1 0 47.0 52.0 A 11 11 0 1 0 69.0 52.0 Z" fill="#6366f1" fill-rule="evenodd"/></g></g>
+        <g transform="rotate(194.00 113.55 86.71)"><g class="g-small" style="transform-origin:113.55px 86.71px"><path d="M 134.27 83.29 L 142.44 84.16 L 142.44 89.26 L 134.27 90.13 A 21.0 21.0 0 0 1 132.32 96.13 L 138.42 101.63 L 135.42 105.75 L 128.30 101.65 A 21.0 21.0 0 0 1 123.20 105.36 L 124.90 113.40 L 120.05 114.97 L 116.70 107.47 A 21.0 21.0 0 0 1 110.39 107.47 L 107.04 114.97 L 102.20 113.40 L 103.90 105.36 A 21.0 21.0 0 0 1 98.79 101.65 L 91.67 105.75 L 88.68 101.63 L 94.78 96.13 A 21.0 21.0 0 0 1 92.83 90.13 L 84.66 89.26 L 84.66 84.16 L 92.83 83.29 A 21.0 21.0 0 0 1 94.78 77.29 L 88.68 71.79 L 91.67 67.67 L 98.79 71.77 A 21.0 21.0 0 0 1 103.90 68.06 L 102.20 60.02 L 107.04 58.45 L 110.39 65.95 A 21.0 21.0 0 0 1 116.70 65.95 L 120.05 58.45 L 124.90 60.02 L 123.20 68.06 A 21.0 21.0 0 0 1 128.30 71.77 L 135.42 67.67 L 138.42 71.79 L 132.32 77.29 A 21.0 21.0 0 0 1 134.27 83.29 Z M 120.5471502982459 86.70971180727491 A 7 7 0 1 0 106.5471502982459 86.70971180727491 A 7 7 0 1 0 120.5471502982459 86.70971180727491 Z" fill="#a5b4fc" fill-rule="evenodd"/></g></g>
+      </svg>
     </div>
     <h1>Maintenance in progress</h1>
     <p>The report system is temporarily down while we make improvements. Please check back soon.</p>
@@ -414,7 +469,6 @@ body.maintenance .card { display: none; }
     </div>
   </div>
 </div>
-
 
 <div class="card">
 
@@ -547,27 +601,37 @@ body.maintenance .card { display: none; }
 (function () {
   const STATUS_URL = "https://api.ksrpreports.com/maintenance-status";
   const BYPASS_URL = "https://api.ksrpreports.com/maintenance-bypass";
-  const KEY_STORE = "ksrp_maint_key";
   const POLL_MS = 60 * 1000;
 
   const overlay = document.getElementById("maintenance");
-  const banner = document.getElementById("maint-banner");
+  const bar = document.getElementById("staff-bar");
+  const exitBtn = document.getElementById("staff-exit");
   const toggle = document.getElementById("maint-staff-toggle");
   const panel = document.getElementById("maint-staff-panel");
   const keyInput = document.getElementById("maint-key");
   const keyBtn = document.getElementById("maint-key-btn");
   const keyErr = document.getElementById("maint-key-err");
 
-  function getKey() { try { return sessionStorage.getItem(KEY_STORE); } catch (e) { return null; } }
-  function setKey(k) { try { k ? sessionStorage.setItem(KEY_STORE, k) : sessionStorage.removeItem(KEY_STORE); } catch (e) {} }
+  // The key lives in memory only. Refreshing or closing the tab drops it.
+  let staffKey = null;
+  let bypassEpoch = null; // which maintenance session the key was used in
+  let lastEpoch = null;
+
+  function fitBar() {
+    document.body.style.paddingTop = bar.hidden ? "" : (bar.offsetHeight + 24) + "px";
+  }
+  window.addEventListener("resize", fitBar);
 
   function apply(maintenanceOn, staffBypass) {
     document.body.classList.remove("checking");
     const blocked = maintenanceOn && !staffBypass;
     document.body.classList.toggle("maintenance", blocked);
     overlay.hidden = !blocked;
-    banner.hidden = !(maintenanceOn && staffBypass);
+    bar.hidden = !(maintenanceOn && staffBypass);
+    fitBar();
   }
+
+  function dropStaff() { staffKey = null; bypassEpoch = null; }
 
   async function verifyKey(key) {
     try {
@@ -588,12 +652,18 @@ body.maintenance .card { display: none; }
       if (!res.ok) throw new Error("status " + res.status);
       const data = await res.json();
       const on = data.enabled === true;
+      lastEpoch = data.epoch ?? null;
 
-      if (on && getKey()) {
-        if (await verifyKey(getKey())) { apply(true, true); return; }
-        setKey(null); // stored key no longer valid
+      if (!on) { dropStaff(); apply(false, false); return; }
+
+      // Maintenance was turned off and on again since we got in: ask for the key again.
+      if (staffKey && bypassEpoch !== lastEpoch) dropStaff();
+
+      if (staffKey) {
+        if (await verifyKey(staffKey)) { apply(true, true); return; }
+        dropStaff();
       }
-      apply(on, false);
+      apply(true, false);
     } catch (err) {
       // If the status can't be fetched, leave the site usable.
       document.body.classList.remove("checking");
@@ -611,8 +681,10 @@ body.maintenance .card { display: none; }
     keyBtn.disabled = true;
     keyErr.hidden = true;
     if (await verifyKey(key)) {
-      setKey(key);
+      staffKey = key;
+      bypassEpoch = lastEpoch;
       keyInput.value = "";
+      panel.hidden = true;
       apply(true, true);
     } else {
       keyErr.hidden = false;
@@ -622,6 +694,8 @@ body.maintenance .card { display: none; }
 
   keyBtn.addEventListener("click", submitKey);
   keyInput.addEventListener("keydown", (e) => { if (e.key === "Enter") submitKey(); });
+
+  exitBtn.addEventListener("click", () => { dropStaff(); apply(true, false); });
 
   // Never leave the page blank if the check hangs.
   setTimeout(() => document.body.classList.remove("checking"), 4000);
