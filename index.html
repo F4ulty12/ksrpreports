@@ -344,6 +344,11 @@ body {
 .pn-more { display: block; margin: 12px auto 0; }
 @media (max-width: 560px) { .pn-body { grid-template-columns: 1fr; } .pn-row code { display: none; } }
 
+.pn-queue { display: flex; align-items: center; gap: 10px; padding: 11px 14px; margin-bottom: 12px; border: 1px solid #c7d2fe; background: #eef2ff; border-radius: 10px; color: #3730a3; line-height: 1.5; }
+.pn-live { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+.pn-live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulse 1.8s infinite; }
+.pn-queue span.t { flex: 1; font-size: 13px; }
+.pn-queue small { color: #6366f1; white-space: nowrap; }
 /* ---------- maintenance screen ---------- */
 body.checking .card { visibility: hidden; }
 body.maintenance .card { display: none; }
@@ -375,8 +380,20 @@ body.maintenance .card { display: none; }
   to   { opacity: 1; transform: none; }
 }
 
-.gears { width: 190px; margin: 0 auto 18px; }
-.gears svg { display: block; width: 100%; height: auto; overflow: visible; }
+.gears { position: relative; width: 190px; aspect-ratio: 146 / 119; margin: 0 auto 18px; }
+.scene { position: absolute; inset: 0; opacity: 0; transition: opacity 0.5s ease; }
+.scene.on { opacity: 1; }
+.scene svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+.scene.on .brick { animation: drop 0.35s cubic-bezier(0.3, 1.4, 0.5, 1) both; animation-delay: var(--d); }
+@keyframes drop { from { opacity: 0; transform: translateY(-26px); } to { opacity: 1; transform: none; } }
+
+.scene.on .hm-follow { animation: sink 5s steps(1, end) both; }
+.scene.on .hm-swing { transform-origin: 139px 43.5px; animation: swing 1s ease-in-out 4 both; }
+@keyframes sink { 0% { transform: translateY(0); } 14% { transform: translateY(6px); } 34% { transform: translateY(12px); } 54% { transform: translateY(18px); } 74% { transform: translateY(24px); } }
+@keyframes swing { 0% { transform: rotate(0); } 45% { transform: rotate(55deg); } 60% { transform: rotate(55deg); } 70% { transform: rotate(0); } 100% { transform: rotate(0); } }
+
+.maint-elapsed { margin-top: 10px; font-size: 12px; font-weight: 600; color: #4338ca; font-variant-numeric: tabular-nums; }
 
 .g-big   { animation: spin 9s linear infinite; }
 .g-small { animation: spin 5.625s linear infinite reverse; }
@@ -481,6 +498,7 @@ body.maintenance .card { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .maint-box, .g-big, .g-small, .maint-bar span, .dots i, .pulse-dot { animation: none; }
+  .scene .brick, .scene .hm-follow, .scene .hm-swing { animation: none !important; }
   .maint-bar span { left: 0; width: 40%; }
 }
 </style>
@@ -497,15 +515,22 @@ body.maintenance .card { display: none; }
 <div id="maintenance" class="maint" hidden role="alert" aria-live="polite">
   <div class="maint-box">
     <div class="gears">
-      <svg viewBox="0 0 146 119" aria-hidden="true">
+      <div class="scene on"><svg viewBox="0 0 146 119" aria-hidden="true">
         <g transform="rotate(32.00 58.0 52.0)"><g class="g-big" style="transform-origin:58.0px 52.0px"><path d="M 93.81 48.33 L 101.93 49.58 L 101.93 54.42 L 93.81 55.67 A 36.0 36.0 0 0 1 92.49 62.31 L 99.51 66.58 L 97.66 71.05 L 89.68 69.09 A 36.0 36.0 0 0 1 85.92 74.73 L 90.78 81.36 L 87.36 84.78 L 80.73 79.92 A 36.0 36.0 0 0 1 75.09 83.68 L 77.05 91.66 L 72.58 93.51 L 68.31 86.49 A 36.0 36.0 0 0 1 61.67 87.81 L 60.42 95.93 L 55.58 95.93 L 54.33 87.81 A 36.0 36.0 0 0 1 47.69 86.49 L 43.42 93.51 L 38.95 91.66 L 40.91 83.68 A 36.0 36.0 0 0 1 35.27 79.92 L 28.64 84.78 L 25.22 81.36 L 30.08 74.73 A 36.0 36.0 0 0 1 26.32 69.09 L 18.34 71.05 L 16.49 66.58 L 23.51 62.31 A 36.0 36.0 0 0 1 22.19 55.67 L 14.07 54.42 L 14.07 49.58 L 22.19 48.33 A 36.0 36.0 0 0 1 23.51 41.69 L 16.49 37.42 L 18.34 32.95 L 26.32 34.91 A 36.0 36.0 0 0 1 30.08 29.27 L 25.22 22.64 L 28.64 19.22 L 35.27 24.08 A 36.0 36.0 0 0 1 40.91 20.32 L 38.95 12.34 L 43.42 10.49 L 47.69 17.51 A 36.0 36.0 0 0 1 54.33 16.19 L 55.58 8.07 L 60.42 8.07 L 61.67 16.19 A 36.0 36.0 0 0 1 68.31 17.51 L 72.58 10.49 L 77.05 12.34 L 75.09 20.32 A 36.0 36.0 0 0 1 80.73 24.08 L 87.36 19.22 L 90.78 22.64 L 85.92 29.27 A 36.0 36.0 0 0 1 89.68 34.91 L 97.66 32.95 L 99.51 37.42 L 92.49 41.69 A 36.0 36.0 0 0 1 93.81 48.33 Z M 69.0 52.0 A 11 11 0 1 0 47.0 52.0 A 11 11 0 1 0 69.0 52.0 Z" fill="#6366f1" fill-rule="evenodd"/></g></g>
         <g transform="rotate(194.00 113.55 86.71)"><g class="g-small" style="transform-origin:113.55px 86.71px"><path d="M 134.27 83.29 L 142.44 84.16 L 142.44 89.26 L 134.27 90.13 A 21.0 21.0 0 0 1 132.32 96.13 L 138.42 101.63 L 135.42 105.75 L 128.30 101.65 A 21.0 21.0 0 0 1 123.20 105.36 L 124.90 113.40 L 120.05 114.97 L 116.70 107.47 A 21.0 21.0 0 0 1 110.39 107.47 L 107.04 114.97 L 102.20 113.40 L 103.90 105.36 A 21.0 21.0 0 0 1 98.79 101.65 L 91.67 105.75 L 88.68 101.63 L 94.78 96.13 A 21.0 21.0 0 0 1 92.83 90.13 L 84.66 89.26 L 84.66 84.16 L 92.83 83.29 A 21.0 21.0 0 0 1 94.78 77.29 L 88.68 71.79 L 91.67 67.67 L 98.79 71.77 A 21.0 21.0 0 0 1 103.90 68.06 L 102.20 60.02 L 107.04 58.45 L 110.39 65.95 A 21.0 21.0 0 0 1 116.70 65.95 L 120.05 58.45 L 124.90 60.02 L 123.20 68.06 A 21.0 21.0 0 0 1 128.30 71.77 L 135.42 67.67 L 138.42 71.79 L 132.32 77.29 A 21.0 21.0 0 0 1 134.27 83.29 Z M 120.5471502982459 86.70971180727491 A 7 7 0 1 0 106.5471502982459 86.70971180727491 A 7 7 0 1 0 120.5471502982459 86.70971180727491 Z" fill="#a5b4fc" fill-rule="evenodd"/></g></g>
-      </svg>
+      </svg></div>
+      <div class="scene"><svg viewBox="0 0 146 119" aria-hidden="true"><rect x="0" y="109" width="146" height="3" rx="1.5" fill="#c7d2fe"/><rect class="brick" x="4" y="97" width="26" height="11" rx="1.5" fill="#6366f1" style="--d:0.00s"/><rect class="brick" x="32" y="97" width="26" height="11" rx="1.5" fill="#818cf8" style="--d:0.11s"/><rect class="brick" x="60" y="97" width="26" height="11" rx="1.5" fill="#a5b4fc" style="--d:0.22s"/><rect class="brick" x="88" y="97" width="26" height="11" rx="1.5" fill="#6366f1" style="--d:0.33s"/><rect class="brick" x="116" y="97" width="26" height="11" rx="1.5" fill="#818cf8" style="--d:0.44s"/><rect class="brick" x="4" y="84" width="12" height="11" rx="1.5" fill="#a5b4fc" style="--d:0.55s"/><rect class="brick" x="18" y="84" width="26" height="11" rx="1.5" fill="#6366f1" style="--d:0.66s"/><rect class="brick" x="46" y="84" width="26" height="11" rx="1.5" fill="#818cf8" style="--d:0.77s"/><rect class="brick" x="74" y="84" width="26" height="11" rx="1.5" fill="#a5b4fc" style="--d:0.88s"/><rect class="brick" x="102" y="84" width="26" height="11" rx="1.5" fill="#6366f1" style="--d:0.99s"/><rect class="brick" x="130" y="84" width="12" height="11" rx="1.5" fill="#818cf8" style="--d:1.10s"/><rect class="brick" x="4" y="71" width="26" height="11" rx="1.5" fill="#a5b4fc" style="--d:1.21s"/><rect class="brick" x="32" y="71" width="26" height="11" rx="1.5" fill="#6366f1" style="--d:1.32s"/><rect class="brick" x="60" y="71" width="26" height="11" rx="1.5" fill="#818cf8" style="--d:1.43s"/><rect class="brick" x="88" y="71" width="26" height="11" rx="1.5" fill="#a5b4fc" style="--d:1.54s"/><rect class="brick" x="116" y="71" width="26" height="11" rx="1.5" fill="#6366f1" style="--d:1.65s"/><rect class="brick" x="4" y="58" width="12" height="11" rx="1.5" fill="#818cf8" style="--d:1.76s"/><rect class="brick" x="18" y="58" width="26" height="11" rx="1.5" fill="#a5b4fc" style="--d:1.87s"/><rect class="brick" x="46" y="58" width="26" height="11" rx="1.5" fill="#6366f1" style="--d:1.98s"/><rect class="brick" x="74" y="58" width="26" height="11" rx="1.5" fill="#818cf8" style="--d:2.09s"/><rect class="brick" x="102" y="58" width="26" height="11" rx="1.5" fill="#a5b4fc" style="--d:2.20s"/><rect class="brick" x="130" y="58" width="12" height="11" rx="1.5" fill="#6366f1" style="--d:2.31s"/><rect class="brick" x="4" y="45" width="26" height="11" rx="1.5" fill="#818cf8" style="--d:2.42s"/><rect class="brick" x="32" y="45" width="26" height="11" rx="1.5" fill="#a5b4fc" style="--d:2.53s"/><rect class="brick" x="60" y="45" width="26" height="11" rx="1.5" fill="#6366f1" style="--d:2.64s"/><rect class="brick" x="88" y="45" width="26" height="11" rx="1.5" fill="#818cf8" style="--d:2.75s"/><rect class="brick" x="116" y="45" width="26" height="11" rx="1.5" fill="#a5b4fc" style="--d:2.86s"/></svg></div>
+      <div class="scene"><svg viewBox="0 0 146 119" aria-hidden="true">
+<g class="hm-follow"><g class="nail"><rect x="67" y="50" width="12" height="3" rx="1" fill="#9ca3af"/><rect x="71.5" y="53" width="3" height="48" fill="#9ca3af"/></g></g>
+<rect x="22" y="78" width="102" height="24" rx="2" fill="#d9b382"/><rect x="22" y="78" width="102" height="4" rx="2" fill="#e8c99b"/><path d="M30 90h30M70 96h40M45 86h20" stroke="#c49a66" stroke-width="1.2" stroke-linecap="round"/>
+<g class="nail-follow hm-follow"><g class="hm-swing"><rect x="81" y="41" width="58" height="5" rx="2.5" fill="#a5b4fc"/><rect x="63" y="36" width="20" height="14" rx="2" fill="#374151"/></g></g>
+</svg></div>
     </div>
     <h1>Maintenance in progress</h1>
     <p>The report system is temporarily down while we make improvements. Please check back soon.</p>
     <div class="maint-bar"><span></span></div>
     <div class="maint-status">Checking again automatically<span class="dots"><i></i><i></i><i></i></span></div>
+    <div class="maint-elapsed" id="maint-elapsed" hidden></div>
     <div class="maint-staff">
       <button type="button" class="link" id="maint-staff-toggle">Staff access</button>
       <div id="maint-staff-panel" hidden>
@@ -643,6 +668,9 @@ body.maintenance .card { display: none; }
   const root = document.getElementById("pn-root");
   let me = null, all = [], scope = "mine", st = "all", q = "", ty = "all", sort = "new", shown = PAGE;
   let started = false, busy = false, signInFailed = false;
+  let queue = null;
+  let staffChanged = false;
+  const openIds = new Set();
   const el = {};
 
   function h(tag, attrs, ...kids) {
@@ -688,16 +716,42 @@ body.maintenance .card { display: none; }
     busy = false;
   }
 
-  async function load() {
-    const r = await call("/panel/reports?scope=" + scope);
-    if (r && r.status === 401) return signIn();
-    if (!r || !r.ok) return message("Couldn't load reports", "Something went wrong on our side. Try again in a moment.", retry());
-    all = (await r.json()).reports.map(x => ({
+  async function fetchData() {
+    const get = () => call("/panel/reports?scope=" + scope);
+    let r = await get();
+    if (r && r.status === 401) { signIn(); return false; }
+    if (r && r.status === 403) { me.staff = false; scope = "mine"; staffChanged = true; r = await get(); } // role was removed
+    if (!r || !r.ok) return null;
+    let d = await r.json();
+    if (typeof d.staff === "boolean" && d.staff !== me.staff) {                                           // role was added
+      me.staff = d.staff; scope = d.staff ? "all" : "mine"; staffChanged = true;
+      r = await get();
+      if (!r || !r.ok) return null;
+      d = await r.json();
+    }
+    queue = d.queue;
+    all = d.reports.map(x => ({
       ...x,
-      _h: [x.id, x.who, x.role, x.type, x.reason, x.notes, x.reporterUsername, x.reporterId, x.claimedBy, x.status].join(" ").toLowerCase()
+      _h: [x.id, x.who, x.role, x.type, x.reason, x.notes, x.reporterUsername, x.reporterId, x.claimedBy, x.resolvedBy, x.status].join(" ").toLowerCase()
     }));
+    return true;
+  }
+
+  async function load() {
+    const ok = await fetchData();
+    if (ok === false) return;
+    if (!ok) return message("Couldn't load reports", "Something went wrong on our side. Try again in a moment.", retry());
     shown = PAGE;
+    staffChanged = false;
     shell();
+    render();
+  }
+
+  // Silent refresh for the live queue: keeps filters, search and open rows.
+  async function poll() {
+    if (busy || !me) return;
+    if (await fetchData() !== true) return;
+    if (staffChanged) { staffChanged = false; shell(); }
     render();
   }
 
@@ -721,6 +775,7 @@ body.maintenance .card { display: none; }
     const seg = me.staff ? h("div", { class: "pn-seg" }, ["all", "mine"].map(s =>
       h("button", { class: s === scope ? "on" : "", onclick: () => { scope = s; load(); } }, s === "all" ? "All reports" : "My reports"))) : null;
 
+    el.queue = h("div", { class: "pn-queue" });
     el.chips = h("div", { class: "pn-chips" });
     el.count = h("div", { class: "pn-count" });
     el.list = h("div", null);
@@ -735,10 +790,28 @@ body.maintenance .card { display: none; }
     const sortSel = h("select", { class: "pn-sel", "aria-label": "Sort", onchange: e => { sort = e.target.value; render(); } },
       h("option", { value: "new", selected: sort === "new" }, "Newest first"), h("option", { value: "old", selected: sort === "old" }, "Oldest first"));
 
-    root.replaceChildren(head, seg, h("div", { class: "pn-tools" }, search, typeSel, sortSel), el.chips, el.count, el.list, el.more);
+    root.replaceChildren(...[head, seg, el.queue, h("div", { class: "pn-tools" }, search, typeSel, sortSel), el.chips, el.count, el.list, el.more].filter(Boolean));
+  }
+
+  function ago(t) {
+    const m = Math.max(0, Math.floor((Date.now() - t) / 60000));
+    if (m < 1) return "under a minute";
+    if (m < 60) return m + " min";
+    const hrs = Math.floor(m / 60);
+    return hrs < 48 ? hrs + " hr" : Math.floor(hrs / 24) + " days";
+  }
+
+  function renderQueue() {
+    if (!queue) return;
+    const n = queue.waiting, rv = queue.inReview;
+    const text = n === 0 && rv === 0 ? "No reports are waiting right now."
+      : `${n} report${n === 1 ? "" : "s"} waiting to be claimed, ${rv} being reviewed.` + (queue.oldestAt ? ` Longest wait: ${ago(queue.oldestAt)}.` : "");
+    el.queue.replaceChildren(h("span", { class: "pn-live" }, "Live"), h("span", { class: "t" }, text),
+      h("small", null, "Updated " + new Date().toLocaleTimeString(undefined, { timeStyle: "short" })));
   }
 
   function render() {
+    renderQueue();
     const base = all.filter(r => (ty === "all" || r.type === ty) && (!q || r._h.includes(q)));
     const counts = { all: base.length };
     for (const r of base) counts[r.status] = (counts[r.status] || 0) + 1;
@@ -765,18 +838,29 @@ body.maintenance .card { display: none; }
   }
 
   function row(r) {
-    const d = r.createdAt ? new Date(r.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "Date unknown";
+    const fmt = t => t ? new Date(t).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : null;
     const f = (k, v, wide) => v ? h("div", { class: "pn-f" + (wide ? " wide" : "") }, h("span", null, k), h("p", null, v)) : null;
-    return h("details", { class: "pn-row" },
+    const verb = r.status === "accepted" ? "Accepted" : "Denied";
+    const steps = [`Submitted ${fmt(r.createdAt) || "(date unknown)"}`];
+    if (r.status === "unclaimed") steps.push(`Waiting for a staff member to claim it${r.position ? ` (#${r.position} in the queue)` : ""}`);
+    if (r.claimedBy) steps.push(`Claimed by ${r.claimedBy}${r.claimedAt ? " on " + fmt(r.claimedAt) : ""}`);
+    if (r.status === "accepted" || r.status === "denied") {
+      if (r.claimedAt) steps.push(`Claimed on ${fmt(r.claimedAt)}`);
+      steps.push(`${verb} by ${r.resolvedBy || "a staff member"}${r.resolvedAt ? " on " + fmt(r.resolvedAt) : ""}`);
+    }
+    if (r.status === "withdrawn") steps.push("Withdrawn by the reporter");
+    const d = r.createdAt ? new Date(r.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "Date unknown";
+    return h("details", { class: "pn-row", open: openIds.has(r.id), ontoggle: e => { e.target.open ? openIds.add(r.id) : openIds.delete(r.id); } },
       h("summary", null,
         h("span", { class: "pn-badge s-" + r.status }, LABEL[r.status] || r.status),
-        h("span", { class: "pn-main" }, h("b", null, r.who), h("small", null, (r.type || "Report") + ", " + d)),
+        h("span", { class: "pn-main" }, h("b", null, r.who), h("small", null, (r.type || "Report") + ", " + d + (r.position ? `, #${r.position} in queue` : ""))),
         h("code", null, "#" + r.id)),
       h("div", { class: "pn-body" },
+        f("Progress", steps.join("\n"), true),
         f("Role / position", r.role), f("Type", r.type), f("Date of incident", r.incidentDate),
         scope === "all" ? f("Submitted by", `${r.reporterUsername || "Unknown"} (${r.reporterId})`) : null,
         f("Incident description", r.reason, true), f("Additional notes", r.notes, true),
-        f("Claimed by", r.claimedBy), f(r.status === "denied" ? "Denial reason" : "Withdrawal reason", r.reasonText, true),
+        f(r.status === "denied" ? "Denial reason" : "Withdrawal reason", r.reasonText, true),
         r.threadUrl ? h("a", { class: "pn-link", href: r.threadUrl, target: "_blank", rel: "noopener" }, "Open discussion thread") : null));
   }
 
@@ -785,6 +869,10 @@ body.maintenance .card { display: none; }
     card.classList.toggle("wide", view);
     if (view && !started) { started = true; start(); }
   }));
+
+  // Live queue: refresh quietly while the View tab is open and visible.
+  setInterval(() => { if (started && !document.hidden && card.classList.contains("wide")) poll(); }, 20000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && started && card.classList.contains("wide")) poll(); });
 
   document.addEventListener("DOMContentLoaded", () => {
     signInFailed = location.hash.startsWith("#error");
@@ -819,6 +907,8 @@ body.maintenance .card { display: none; }
   let lastEpoch = null;
   let lastVerified = 0;
   let checking = false;
+  let maintSince = null;
+  const elapsedEl = document.getElementById("maint-elapsed");
 
   function fitBar() {
     document.body.style.paddingTop = bar.hidden ? "" : (bar.offsetHeight + 24) + "px";
@@ -858,6 +948,7 @@ body.maintenance .card { display: none; }
       const data = await res.json();
       const on = data.enabled === true;
       lastEpoch = data.epoch ?? null;
+      maintSince = on ? (Number(data.epoch) || null) : null;
 
       if (!on) { dropStaff(); apply(false, false); return; }
 
@@ -909,6 +1000,28 @@ body.maintenance .card { display: none; }
   keyInput.addEventListener("keydown", (e) => { if (e.key === "Enter") submitKey(); });
 
   exitBtn.addEventListener("click", () => { dropStaff(); apply(true, false); });
+
+  // How long maintenance has been on (needs the maintenance_epoch value from the Worker).
+  function tick() {
+    if (overlay.hidden || !maintSince) { elapsedEl.hidden = true; return; }
+    const s = Math.max(0, Math.floor((Date.now() - maintSince) / 1000));
+    const d = Math.floor(s / 86400), hh = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    elapsedEl.textContent = "Maintenance has been on for " + (d ? d + "d " : "") + (d || hh ? hh + "h " : "") + m + "m " + String(sec).padStart(2, "0") + "s";
+    elapsedEl.hidden = false;
+  }
+  setInterval(tick, 1000);
+
+  // Swap the animation every 5 seconds: gears, bricks, hammer.
+  const scenes = [...document.querySelectorAll(".scene")];
+  let sceneIdx = 0;
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    setInterval(() => {
+      if (overlay.hidden) return;
+      scenes[sceneIdx].classList.remove("on");
+      sceneIdx = (sceneIdx + 1) % scenes.length;
+      scenes[sceneIdx].classList.add("on");
+    }, 5000);
+  }
 
   // Never leave the page blank if the check hangs.
   setTimeout(() => document.body.classList.remove("checking"), 4000);
