@@ -295,6 +295,55 @@ body {
 
 .discord-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
+/* ---------- report panel ---------- */
+.card.wide { max-width: 900px; }
+.pn { font-size: 13px; }
+.pn-empty { text-align: center; padding: 26px 8px; }
+.pn-empty strong { font-size: 16px; display: block; margin-bottom: 6px; }
+.pn-empty p { color: var(--muted); line-height: 1.6; margin: 0 auto 18px; max-width: 380px; }
+.pn-login { display: block; box-sizing: border-box; text-align: center; text-decoration: none; max-width: 300px; margin: 0 auto; }
+.pn-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.pn-av { width: 34px; height: 34px; border-radius: 50%; background: var(--border); }
+.pn-who { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.pn-who strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pn-who span { font-size: 11px; color: var(--muted); }
+.pn-btn { padding: 7px 12px; border: 1px solid var(--border); background: white; border-radius: 8px; font-size: 12px; font-weight: 600; font-family: inherit; color: var(--text); cursor: pointer; }
+.pn-btn:hover { background: #f9fafb; }
+.pn-seg { display: flex; gap: 4px; background: #f3f4f6; padding: 4px; border-radius: 10px; margin-bottom: 12px; }
+.pn-seg button { flex: 1; border: none; background: transparent; padding: 7px; border-radius: 7px; font: 600 12px Arial, sans-serif; color: var(--muted); cursor: pointer; }
+.pn-seg button.on { background: white; color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.pn-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.pn-search { flex: 1 1 220px; }
+.pn-search, .pn-sel { padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font: 13px Arial, sans-serif; background: white; outline: none; box-sizing: border-box; }
+.pn-search:focus, .pn-sel:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+.pn-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.pn-chip { border: 1px solid var(--border); background: white; border-radius: 99px; padding: 5px 11px; font: 600 12px Arial, sans-serif; color: var(--muted); cursor: pointer; }
+.pn-chip b { margin-left: 4px; color: var(--text); }
+.pn-chip.on { background: #111827; border-color: #111827; color: white; }
+.pn-chip.on b { color: white; }
+.pn-count { font-size: 11px; color: var(--muted); margin-bottom: 8px; min-height: 14px; }
+.pn-row { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: white; }
+.pn-row[open] { border-color: #c7d2fe; }
+.pn-row summary { display: flex; align-items: center; gap: 12px; padding: 11px 14px; cursor: pointer; list-style: none; }
+.pn-row summary::-webkit-details-marker { display: none; }
+.pn-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pn-main b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pn-main small { color: var(--muted); font-size: 11px; }
+.pn-row code { font-size: 11px; color: var(--muted); }
+.pn-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: #f3f4f6; color: var(--muted); white-space: nowrap; }
+.s-unclaimed { background: #fee2e2; color: #991b1b; }
+.s-claimed { background: #fef3c7; color: #92400e; }
+.s-accepted { background: #dcfce7; color: #166534; }
+.s-denied { background: #ffe4e6; color: #9f1239; }
+.pn-body { padding: 4px 14px 14px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
+.pn-f { padding-top: 10px; }
+.pn-f.wide { grid-column: 1 / -1; }
+.pn-f span { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 2px; }
+.pn-f p { margin: 0; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+.pn-link { grid-column: 1 / -1; padding-top: 10px; color: #4338ca; font-weight: 600; }
+.pn-more { display: block; margin: 12px auto 0; }
+@media (max-width: 560px) { .pn-body { grid-template-columns: 1fr; } .pn-row code { display: none; } }
+
 /* ---------- maintenance screen ---------- */
 body.checking .card { visibility: hidden; }
 body.maintenance .card { display: none; }
@@ -474,7 +523,7 @@ body.maintenance .card { display: none; }
 
   <div class="tabs">
     <button type="button" class="tab active" data-tab="make">📝 Make Report</button>
-    <button type="button" class="tab" data-tab="view">📂 View Reports <span class="soon-badge">Soon</span></button>
+    <button type="button" class="tab" data-tab="view">📂 View Reports</button>
   </div>
 
   <div id="panel-make">
@@ -579,22 +628,173 @@ body.maintenance .card { display: none; }
   </div><!-- end #panel-make -->
 
   <div id="panel-view" hidden>
-    <div class="coming-soon">
-      <div class="big-icon">🚧</div>
-      <h2>Report Panel: Coming Soon</h2>
-      <p>We're building a panel where you can track your reports. This feature isn't available yet.</p>
-
-      <ul class="feature-list">
-        <li><span class="f-icon">📋</span><div><strong>View your reports</strong>See every report you've submitted, with its status and full details.</div></li>
-        <li><span class="f-icon">🔄</span><div><strong>Live status updates</strong>Follow a report from received to claimed to accepted or denied.</div></li>
-        <li><span class="f-icon">🛡️</span><div><strong>Staff login</strong>Staff will sign in with Discord to verify their role and review reports.</div></li>
-      </ul>
-
-      <button type="button" class="discord-btn" disabled>Login with Discord (coming soon)</button>
-    </div>
+    <div id="pn-root" class="pn"></div>
   </div>
 
 </div>
+
+<script>
+// ----- report panel -----
+(function () {
+  const API = "https://api.ksrpreports.com";
+  const LABEL = { unclaimed: "Unclaimed", claimed: "Claimed", accepted: "Accepted", denied: "Denied", withdrawn: "Withdrawn" };
+  const PAGE = 20;
+  const card = document.querySelector(".card");
+  const root = document.getElementById("pn-root");
+  let me = null, all = [], scope = "mine", st = "all", q = "", ty = "all", sort = "new", shown = PAGE;
+  let started = false, busy = false, signInFailed = false;
+  const el = {};
+
+  function h(tag, attrs, ...kids) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+      else if (v !== false && v != null) e.setAttribute(k, v === true ? "" : v);
+    }
+    for (const c of kids.flat()) if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(c));
+    return e;
+  }
+  const debounce = (fn, ms = 150) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+  async function call(path, opt) {
+    try { return await fetch(API + path, { credentials: "include", cache: "no-store", ...opt }); }
+    catch (e) { return null; }
+  }
+
+  function message(title, text, ...actions) {
+    root.replaceChildren(h("div", { class: "pn-empty" }, h("strong", null, title), h("p", null, text), ...actions));
+  }
+  const retry = () => h("button", { class: "pn-btn", onclick: start }, "Try again");
+
+  function signIn() {
+    me = null;
+    message(
+      signInFailed ? "Sign-in didn't finish" : "Sign in to view your reports",
+      signInFailed ? "Something went wrong while signing in with Discord. Try again." : "Sign in with Discord to see the reports you've submitted and follow their status. Staff see every report here too.",
+      h("a", { class: "discord-btn pn-login", href: API + "/auth/login" }, "Sign in with Discord")
+    );
+  }
+
+  async function start() {
+    if (busy) return;
+    busy = true;
+    message("Loading", "One moment.");
+    const r = await call("/panel/me");
+    if (!r) { busy = false; return message("Can't reach the server", "Check your connection and try again.", retry()); }
+    if (r.status === 401) { busy = false; return signIn(); }
+    me = await r.json();
+    scope = me.staff ? "all" : "mine";
+    await load();
+    busy = false;
+  }
+
+  async function load() {
+    const r = await call("/panel/reports?scope=" + scope);
+    if (r && r.status === 401) return signIn();
+    if (!r || !r.ok) return message("Couldn't load reports", "Something went wrong on our side. Try again in a moment.", retry());
+    all = (await r.json()).reports.map(x => ({
+      ...x,
+      _h: [x.id, x.who, x.role, x.type, x.reason, x.notes, x.reporterUsername, x.reporterId, x.claimedBy, x.status].join(" ").toLowerCase()
+    }));
+    shown = PAGE;
+    shell();
+    render();
+  }
+
+  async function logout() {
+    await call("/auth/logout", { method: "POST" });
+    signIn();
+  }
+
+  function shell() {
+    const types = [...new Set(all.map(r => r.type).filter(Boolean))].sort();
+    const avatar = h("img", {
+      class: "pn-av", alt: "",
+      src: me.avatar ? `https://cdn.discordapp.com/avatars/${me.id}/${me.avatar}.png?size=64` : "https://cdn.discordapp.com/embed/avatars/0.png",
+      onerror: e => e.target.remove()
+    });
+    const head = h("div", { class: "pn-head" }, avatar,
+      h("div", { class: "pn-who" }, h("strong", null, me.name), h("span", null, me.staff ? "Staff" : "Member")),
+      h("button", { class: "pn-btn", onclick: load }, "Refresh"),
+      h("button", { class: "pn-btn", onclick: logout }, "Sign out"));
+
+    const seg = me.staff ? h("div", { class: "pn-seg" }, ["all", "mine"].map(s =>
+      h("button", { class: s === scope ? "on" : "", onclick: () => { scope = s; load(); } }, s === "all" ? "All reports" : "My reports"))) : null;
+
+    el.chips = h("div", { class: "pn-chips" });
+    el.count = h("div", { class: "pn-count" });
+    el.list = h("div", null);
+    el.more = h("button", { class: "pn-btn pn-more", onclick: () => { shown += PAGE; render(); } }, "Show more");
+
+    const search = h("input", {
+      type: "search", class: "pn-search", placeholder: "Search by ID, name, or text", value: q, "aria-label": "Search reports",
+      oninput: debounce(e => { q = e.target.value.trim().toLowerCase(); shown = PAGE; render(); })
+    });
+    const typeSel = h("select", { class: "pn-sel", "aria-label": "Filter by type", onchange: e => { ty = e.target.value; shown = PAGE; render(); } },
+      h("option", { value: "all" }, "All types"), types.map(t => h("option", { value: t, selected: t === ty }, t)));
+    const sortSel = h("select", { class: "pn-sel", "aria-label": "Sort", onchange: e => { sort = e.target.value; render(); } },
+      h("option", { value: "new", selected: sort === "new" }, "Newest first"), h("option", { value: "old", selected: sort === "old" }, "Oldest first"));
+
+    root.replaceChildren(head, seg, h("div", { class: "pn-tools" }, search, typeSel, sortSel), el.chips, el.count, el.list, el.more);
+  }
+
+  function render() {
+    const base = all.filter(r => (ty === "all" || r.type === ty) && (!q || r._h.includes(q)));
+    const counts = { all: base.length };
+    for (const r of base) counts[r.status] = (counts[r.status] || 0) + 1;
+
+    el.chips.replaceChildren(...["all", ...Object.keys(LABEL)].map(s =>
+      h("button", { class: "pn-chip" + (s === st ? " on" : ""), onclick: () => { st = s; shown = PAGE; render(); } },
+        s === "all" ? "All" : LABEL[s], h("b", null, counts[s] || 0))));
+
+    let rows = st === "all" ? base : base.filter(r => r.status === st);
+    if (sort === "old") rows = rows.slice().reverse();
+
+    el.count.textContent = rows.length ? `Showing ${Math.min(shown, rows.length)} of ${rows.length}` : "";
+    el.list.replaceChildren(...(rows.length ? rows.slice(0, shown).map(row) : [empty()]));
+    el.more.hidden = rows.length <= shown;
+  }
+
+  function empty() {
+    if (all.length) return h("div", { class: "pn-empty" }, h("strong", null, "No matching reports"), h("p", null, "Try a different search or filter."),
+      h("button", { class: "pn-btn", onclick: () => { q = ""; st = "all"; ty = "all"; shell(); render(); } }, "Clear filters"));
+    return scope === "all"
+      ? h("div", { class: "pn-empty" }, h("strong", null, "No reports yet"), h("p", null, "Reports will show up here as they're submitted."))
+      : h("div", { class: "pn-empty" }, h("strong", null, "You haven't submitted a report"), h("p", null, "Reports you submit show up here with their status and details."),
+          h("button", { class: "pn-btn", onclick: () => document.querySelector('.tab[data-tab="make"]').click() }, "Make a report"));
+  }
+
+  function row(r) {
+    const d = r.createdAt ? new Date(r.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "Date unknown";
+    const f = (k, v, wide) => v ? h("div", { class: "pn-f" + (wide ? " wide" : "") }, h("span", null, k), h("p", null, v)) : null;
+    return h("details", { class: "pn-row" },
+      h("summary", null,
+        h("span", { class: "pn-badge s-" + r.status }, LABEL[r.status] || r.status),
+        h("span", { class: "pn-main" }, h("b", null, r.who), h("small", null, (r.type || "Report") + ", " + d)),
+        h("code", null, "#" + r.id)),
+      h("div", { class: "pn-body" },
+        f("Role / position", r.role), f("Type", r.type), f("Date of incident", r.incidentDate),
+        scope === "all" ? f("Submitted by", `${r.reporterUsername || "Unknown"} (${r.reporterId})`) : null,
+        f("Incident description", r.reason, true), f("Additional notes", r.notes, true),
+        f("Claimed by", r.claimedBy), f(r.status === "denied" ? "Denial reason" : "Withdrawal reason", r.reasonText, true),
+        r.threadUrl ? h("a", { class: "pn-link", href: r.threadUrl, target: "_blank", rel: "noopener" }, "Open discussion thread") : null));
+  }
+
+  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+    const view = t.dataset.tab === "view";
+    card.classList.toggle("wide", view);
+    if (view && !started) { started = true; start(); }
+  }));
+
+  document.addEventListener("DOMContentLoaded", () => {
+    signInFailed = location.hash.startsWith("#error");
+    if (signInFailed || location.hash === "#reports") {
+      history.replaceState(null, "", location.pathname + location.search);
+      setTimeout(() => document.querySelector('.tab[data-tab="view"]').click(), 0);
+    }
+  });
+})();
+</script>
 
 <script>
 // ----- maintenance check -----
