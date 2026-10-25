@@ -209,12 +209,105 @@ body {
   font-size: 13px;
   font-weight: 600;
 }
+
+/* ---------- tabs + coming soon ---------- */
+[hidden] { display: none !important; }
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  background: #f3f4f6;
+  padding: 5px;
+  border-radius: 12px;
+  margin-bottom: 22px;
+}
+
+.tab {
+  flex: 1;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--muted);
+  cursor: pointer;
+  transition: 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tab:hover { color: var(--text); }
+
+.tab.active {
+  background: white;
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.soon-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 2px 7px;
+  border-radius: 20px;
+}
+
+.coming-soon { text-align: center; padding: 10px 0 4px; }
+.coming-soon .big-icon { font-size: 38px; margin-bottom: 8px; }
+.coming-soon h2 { font-size: 17px; margin: 0 0 6px; }
+.coming-soon p { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0 auto 18px; max-width: 420px; }
+
+.feature-list { list-style: none; padding: 0; margin: 0 0 20px; text-align: left; }
+
+.feature-list li {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.feature-list li strong { display: block; color: var(--text); font-size: 13px; margin-bottom: 2px; }
+.feature-list .f-icon { font-size: 18px; }
+
+.discord-btn {
+  width: 100%;
+  padding: 10px 22px;
+  background: #5865f2;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.discord-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 </style>
 </head>
 
 <body>
 
 <div class="card">
+
+  <div class="tabs">
+    <button type="button" class="tab active" data-tab="make">📝 Make Report</button>
+    <button type="button" class="tab" data-tab="view">📂 View Reports <span class="soon-badge">Soon</span></button>
+  </div>
+
+  <div id="panel-make">
+
   <div class="card-title">⛔ Submit a Report</div>
   <div class="card-sub">Report a staff member, or community member in KSRP.</div>
 
@@ -311,6 +404,25 @@ body {
   <button class="submit-btn" id="submit-btn" onclick="submitReport()">Submit Report</button>
   <div class="success-msg" id="rep-success">✅ Report submitted. We'll review it shortly.</div>
   <div class="error-msg" id="rep-error">❌ Something went wrong submitting your report. Please try again.</div>
+
+  </div><!-- end #panel-make -->
+
+  <div id="panel-view" hidden>
+    <div class="coming-soon">
+      <div class="big-icon">🚧</div>
+      <h2>Report Panel: Coming Soon</h2>
+      <p>We're building a panel where you can track your reports. This feature isn't available yet.</p>
+
+      <ul class="feature-list">
+        <li><span class="f-icon">📋</span><div><strong>View your reports</strong>See every report you've submitted, with its status and full details.</div></li>
+        <li><span class="f-icon">🔄</span><div><strong>Live status updates</strong>Follow a report from received to claimed to accepted or denied.</div></li>
+        <li><span class="f-icon">🛡️</span><div><strong>Staff login</strong>Staff will sign in with Discord to verify their role and review reports.</div></li>
+      </ul>
+
+      <button type="button" class="discord-btn" disabled>Login with Discord (coming soon)</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -388,6 +500,22 @@ function renderPreviews() {
 
 // expose for inline onclick
 window.removeFile = removeFile;
+
+// ----- tab switching -----
+const tabButtons = document.querySelectorAll(".tab");
+const panels = {
+  make: document.getElementById("panel-make"),
+  view: document.getElementById("panel-view")
+};
+
+tabButtons.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    tabButtons.forEach((t) => t.classList.toggle("active", t === tab));
+    Object.entries(panels).forEach(([name, el]) => {
+      el.hidden = name !== tab.dataset.tab;
+    });
+  });
+});
 
 // Format a YYYY-MM-DD date input value as MM/DD/YYYY for display in the report
 function formatDate(isoDate) {
