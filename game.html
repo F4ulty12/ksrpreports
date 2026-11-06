@@ -1,0 +1,993 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Game</title></head><body><h1>Type "conquer"</h1><script>
+/* ===== Secret game: type "conquer" anywhere on the page (not inside a field) ===== */
+(function () {
+"use strict";
+const CODE = "conquer", GW = 900, GH = 357, SC = 2, STEP = .4, CW = 300, CH = 120, DAY0 = Date.UTC(2026, 0, 1);
+const TERR = ["Plains", "Forest", "Hills", "Mountains", "Desert", "Arctic"], TM = [1, 1.15, 1.25, 1.5, .95, 1.1];
+const TC = ["#7d9c52", "#43703e", "#93855a", "#8c8c96", "#cfae63", "#dbe6f0"];
+const RES = ["Food", "Coal", "Steel", "Oil", "Rubber", "Aluminum"];
+const GOVS = ["Democracy", "Republic", "Constitutional monarchy", "Monarchy", "Authoritarian", "Communist state", "Military dictatorship"];
+const GOVO = [["Communist state", "China", "North Korea", "Cuba", "Vietnam", "Laos"], ["Constitutional monarchy", "United Kingdom", "Japan", "Canada", "Australia", "Spain", "Sweden", "Norway", "Denmark", "Netherlands", "Belgium", "Thailand", "New Zealand"], ["Monarchy", "Saudi Arabia", "Morocco", "Jordan", "Oman", "Kuwait", "United Arab Emirates", "Qatar", "Bhutan"], ["Authoritarian", "Russia", "Iran", "Belarus", "Turkey", "Egypt", "Syria", "Turkmenistan", "Eritrea", "Azerbaijan", "Kazakhstan"], ["Military dictatorship", "Myanmar"], ["Democracy", "United States of America", "Germany", "France", "India", "Brazil", "Italy", "Poland", "Israel", "South Korea", "Mexico", "Argentina", "Chile", "Ireland", "Switzerland"]];
+const TB = { "United States of America": [335, 27000], "China": [1410, 18000], "India": [1430, 3700], "Germany": [84, 4500], "Japan": [124, 4200], "United Kingdom": [68, 3300], "France": [68, 3000], "Italy": [59, 2200], "Brazil": [216, 2200], "Canada": [40, 2100], "Russia": [144, 2000], "South Korea": [52, 1700], "Australia": [26, 1700], "Mexico": [128, 1800], "Spain": [48, 1500], "Indonesia": [277, 1400], "Saudi Arabia": [36, 1100], "Turkey": [85, 1100], "Poland": [37, 800], "Argentina": [46, 640], "Nigeria": [224, 360], "Egypt": [112, 390], "Pakistan": [240, 340], "Iran": [89, 400], "Ukraine": [37, 160], "Israel": [9, 510], "Vietnam": [99, 430], "South Africa": [60, 380], "Thailand": [72, 510], "Bangladesh": [171, 440], "Netherlands": [18, 1100], "Switzerland": [9, 900] };
+const TECH = { l: "Land warfare", i: "Industry", f: "Infrastructure", e: "Electronics", m: "Medicine", n: "Nuclear", v: "Navy", a: "Air force" };
+/* national map colours: each nation gets the colour it is traditionally associated with (from its flag / familiar atlas colour); unlisted territories fall back to a stable hash colour */
+const NC = {}; ("United States of America:3f6fb8|Canada:d04545|Mexico:3a9a5f|Greenland:c97b7b|Brazil:3fae5a|Argentina:74b9e8|Chile:c4453e|Peru:d4554a|Colombia:e8c53a|Venezuela:d9b43a|Bolivia:5fa05a|Ecuador:e0bf3a|Paraguay:b84a5a|Uruguay:7fb0dc|Guyana:3f9b6a|Suriname:4aa564|Cuba:2f5fa8|Haiti:2d4fa0|Dominican Rep.:5a74c0|Jamaica:d8b72f|Panama:d05060|Costa Rica:5575b8|Nicaragua:4f86c6|Honduras:4a7cc0|El Salvador:3f6fc0|Guatemala:69a3d9|Belize:3c5aa6|Bahamas:4fb7c5|Puerto Rico:7090c8|Trinidad and Tobago:c0392b|United Kingdom:b0343f|Ireland:2f9f62|France:3b63c6|Spain:e0b020|Portugal:2f8a55|Germany:55585f|Italy:4aa86a|Switzerland:e04a4a|Austria:d8505a|Belgium:e0c030|Netherlands:ee8a2a|Luxembourg:5aa8dc|Denmark:c8505a|Norway:b84050|Sweden:3d7fc8|Finland:8cb8e0|Iceland:3d62a8|Poland:e06a78|Czechia:5878c0|Slovakia:4c68b4|Hungary:4e9a64|Romania:e3c230|Bulgaria:3f9a6a|Greece:5a9ae0|Serbia:a8404c|Croatia:6a68c0|Slovenia:4a9bd0|Bosnia and Herz.:5a70b8|Montenegro:c8a030|Albania:c43a3a|North Macedonia:d84a3a|Macedonia:d84a3a|Kosovo:4a62b0|Moldova:d8a020|Ukraine:e8c42a|Belarus:cb4a4a|Lithuania:d0b030|Latvia:9a3a4a|Estonia:4a86c8|Russia:5f8f5a|Cyprus:d9a066|N. Cyprus:c78a56|Turkey:e04a50|Israel:6aa8f0|Palestine:3a9a5a|Lebanon:3fa86a|Syria:8a3a3a|Jordan:3f6a4a|Iraq:a84a46|Iran:4fb060|Saudi Arabia:0f6b3f|Yemen:b05a4a|Oman:c8343c|United Arab Emirates:4a9a6a|Qatar:8a2a4a|Kuwait:5aa870|China:d83a35|Mongolia:3a62a8|North Korea:9a2a3a|South Korea:5a7ac8|Japan:e8b8c0|Taiwan:3a6fb0|India:f09030|Pakistan:2a8a48|Bangladesh:1a9a6a|Nepal:c8344a|Bhutan:e8a020|Sri Lanka:a8582a|Afghanistan:6a4a3a|Kazakhstan:3fb0c8|Uzbekistan:4a98d8|Turkmenistan:3a9a60|Kyrgyzstan:d04a4a|Tajikistan:c8503f|Azerbaijan:4a9ad0|Armenia:e07a2a|Georgia:c43a50|Myanmar:e0c030|Thailand:3a4a9a|Laos:c04a60|Cambodia:3a50b0|Vietnam:e04a3a|Malaysia:3a58a8|Indonesia:d83a40|Philippines:3a6ac8|Brunei:e8c030|Timor-Leste:b03040|Papua New Guinea:5a4a3a|Australia:e0b04a|New Zealand:3a4a8a|Fiji:6ab4e0|Egypt:c8b07a|Libya:1f6a3a|Tunisia:d8444a|Algeria:4aa86a|Morocco:c8343a|W. Sahara:8a9a5a|Mauritania:2a9a5a|Mali:e0c030|Senegal:3aa85a|Niger:e8883a|Chad:2a4a9a|Sudan:b8404a|S. Sudan:3a8a5a|Ethiopia:e0c040|Eritrea:4a90d0|Djibouti:5ab0e0|Somalia:6ab0f0|Somaliland:5aa0e0|Nigeria:2f9a52|Cameroon:4aa848|Ghana:d8b030|Ivory Coast:e8883a|Côte d'Ivoire:e8883a|Burkina Faso:c8423a|Benin:d8c040|Togo:4aa060|Guinea:cc6a3a|Sierra Leone:4ab868|Liberia:4a60b0|Guinea-Bissau:3a9a50|Gambia:c8443a|Dem. Rep. Congo:4a88d0|Congo:3a9a58|Gabon:3aa868|Eq. Guinea:4aa868|Central African Rep.:4a6ab8|Angola:b8343a|Zambia:3a8a50|Zimbabwe:e0c030|Mozambique:3aa050|Malawi:d04a4a|Tanzania:3aa0c8|Kenya:2a7a4a|Uganda:e0b830|Rwanda:4a8fd0|Burundi:d04a58|Botswana:6ab4e0|Namibia:3a6ab8|South Africa:3aa05a|Lesotho:3a70c0|eSwatini:4a60b0|Madagascar:d8683a|Solomon Is.:4a8ad0|Vanuatu:d04a3a|New Caledonia:5a7ab8|Falkland Is.:6a8ac0").split("|").forEach(e => { const i = e.lastIndexOf(":"); NC[e.slice(0, i)] = e.slice(i + 1); });
+const hex2rgb = h => [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+function hslRgb(h, s, l) { s /= 100; l /= 100; const a = s * Math.min(l, 1 - l), f = n => { const k = (n + h / 30) % 12; return Math.round((l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))) * 255); }; return [f(0), f(8), f(4)]; }
+const rgb2hsl = ([r, g, b]) => { r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2; let h = 0, s = 0; if (mx !== mn) { const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; } return [h, s * 100, l * 100]; };
+const cdist = (a, b) => { const rm = (a[0] + b[0]) / 2, dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2]; return Math.sqrt((2 + rm / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rm) / 256) * db * db); };
+const rgb32 = c => (255 << 24 | c[2] << 16 | c[1] << 8 | c[0]) >>> 0;
+const FC = {}; "Afghanistan af,Albania al,Algeria dz,Angola ao,Argentina ar,Armenia am,Australia au,Austria at,Azerbaijan az,Bahamas bs,Bangladesh bd,Belarus by,Belgium be,Belize bz,Benin bj,Bhutan bt,Bolivia bo,Bosnia and Herz. ba,Botswana bw,Brazil br,Brunei bn,Bulgaria bg,Burkina Faso bf,Burundi bi,Cambodia kh,Cameroon cm,Canada ca,Central African Rep. cf,Chad td,Chile cl,China cn,Colombia co,Congo cg,Costa Rica cr,Croatia hr,Cuba cu,Cyprus cy,N. Cyprus cy,Czechia cz,Dem. Rep. Congo cd,Denmark dk,Djibouti dj,Dominican Rep. do,Ecuador ec,Egypt eg,El Salvador sv,Eq. Guinea gq,Eritrea er,Estonia ee,eSwatini sz,Ethiopia et,Falkland Is. fk,Fiji fj,Finland fi,France fr,Gabon ga,Gambia gm,Georgia ge,Germany de,Ghana gh,Greece gr,Greenland gl,Guatemala gt,Guinea gn,Guinea-Bissau gw,Guyana gy,Haiti ht,Honduras hn,Hungary hu,Iceland is,India in,Indonesia id,Iran ir,Iraq iq,Ireland ie,Israel il,Italy it,Ivory Coast ci,Côte d'Ivoire ci,Jamaica jm,Japan jp,Jordan jo,Kazakhstan kz,Kenya ke,Kosovo xk,Kuwait kw,Kyrgyzstan kg,Laos la,Latvia lv,Lebanon lb,Lesotho ls,Liberia lr,Libya ly,Lithuania lt,Luxembourg lu,Macedonia mk,North Macedonia mk,Madagascar mg,Malawi mw,Malaysia my,Mali ml,Mauritania mr,Mexico mx,Moldova md,Mongolia mn,Montenegro me,Morocco ma,Mozambique mz,Myanmar mm,Namibia na,Nepal np,Netherlands nl,New Caledonia nc,New Zealand nz,Nicaragua ni,Niger ne,Nigeria ng,North Korea kp,Norway no,Oman om,Pakistan pk,Palestine ps,Panama pa,Papua New Guinea pg,Paraguay py,Peru pe,Philippines ph,Poland pl,Portugal pt,Puerto Rico pr,Qatar qa,Romania ro,Russia ru,Rwanda rw,S. Sudan ss,Saudi Arabia sa,Senegal sn,Serbia rs,Sierra Leone sl,Slovakia sk,Slovenia si,Solomon Is. sb,Somalia so,Somaliland so,South Africa za,South Korea kr,Spain es,Sri Lanka lk,Sudan sd,Suriname sr,Sweden se,Switzerland ch,Syria sy,Taiwan tw,Tajikistan tj,Tanzania tz,Thailand th,Timor-Leste tl,Togo tg,Trinidad and Tobago tt,Tunisia tn,Turkey tr,Turkmenistan tm,Uganda ug,Ukraine ua,United Arab Emirates ae,United Kingdom gb,United States of America us,Uruguay uy,Uzbekistan uz,Vanuatu vu,Venezuela ve,Vietnam vn,W. Sahara eh,Yemen ye,Zambia zm,Zimbabwe zw".split(",").forEach(e => { const i = e.lastIndexOf(" "); FC[e.slice(0, i)] = e.slice(i + 1); });
+"Hong Kong hk,Macao mo,Singapore sg,Malta mt,Bahrain bh,Mauritius mu,Cabo Verde cv,Comoros km,Seychelles sc,Maldives mv,Andorra ad,Monaco mc,Liechtenstein li,San Marino sm,Vatican va,Barbados bb,Grenada gd,Saint Lucia lc,Dominica dm,Antigua and Barb. ag,St. Kitts and Nevis kn,St. Vin. and Gren. vc,Tonga to,Samoa ws,Kiribati ki,Micronesia fm,Marshall Is. mh,Palau pw,Nauru nr,Tuvalu tv,São Tomé and Principe st,Sao Tome and Principe st,Bermuda bm,Cayman Is. ky,Faeroe Is. fo,Guam gu,N. Mariana Is. mp,American Samoa as,Fr. Polynesia pf,Wallis and Futuna Is. wf,Aruba aw,Curaçao cw,Sint Maarten sx,Turks and Caicos Is. tc,British Virgin Is. vg,U.S. Virgin Is. vi,Anguilla ai,Montserrat ms,Jersey je,Guernsey gg,Isle of Man im,Åland ax,S. Geo. and the Is. gs,Pitcairn Is. pn,Cook Is. ck,Niue nu,Norfolk Island nf,Christmas I. cx,Cocos (Keeling) Is. cc,Br. Indian Ocean Ter. io,Saint Helena sh,St. Pierre and Miquelon pm,St-Martin mf,St-Barthélemy bl,Fr. S. Antarctic Lands tf,Ashmore and Cartier Is. au,Heard I. and McDonald Is. hm,Indian Ocean Ter. au,Coral Sea Is. au,Clipperton I. fr,Gibraltar gi,Czech Republic cz,Swaziland sz,Siachen Glacier in,Baikonur kz,USNB Guantanamo Bay us,Dhekelia gb,Akrotiri gb,UN Buffer Zone cy,Spratly Is. vn,Scarborough Reef ph,Bajo Nuevo Bank co,Serranilla Bank co,Brazilian I. br,Bir Tawil eg,Vatican City va,Congo (Kinshasa) cd,Congo (Brazzaville) cg,Timor Leste tl,East Timor tl,Cape Verde cv,Burma mm,Republic of Serbia rs,Bosnia and Herzegovina ba,Central African Republic cf,Dominican Republic do,Equatorial Guinea gq,South Sudan ss,Western Sahara eh,Solomon Islands sb,Falkland Islands fk,Ivory Coast ci".split(",").forEach(e => { const i = e.lastIndexOf(" "); FC[e.slice(0, i)] = e.slice(i + 1); });
+/* name -> flag code fallback: any nation missing from the table above is matched against the browser's own list of country names */
+const nrm = s => s.toLowerCase().replace(/&/g, "and").replace(/\brep\./g, "republic").replace(/\bis\./g, "islands").replace(/\bst\./g, "saint").replace(/\bn\./g, "north").replace(/\bs\./g, "south").replace(/\bw\./g, "western").replace(/\bfr\./g, "french").replace(/\bbr\./g, "british").replace(/\bdem\./g, "democratic").replace(/\beq\./g, "equatorial").replace(/\bherz\./g, "herzegovina").replace(/[^a-z ]/g, "").replace(/\s+/g, " ").trim();
+let RN = null;
+function guessCode(name) {
+  if (!RN) { RN = {}; try { const dn = new Intl.DisplayNames(["en"], { type: "region" }); for (let a = 65; a < 91; a++) for (let b = 65; b < 91; b++) { const cd = String.fromCharCode(a, b); let n; try { n = dn.of(cd); } catch (e) { continue; } if (n && n !== cd) RN[nrm(n)] = cd.toLowerCase(); } } catch (e) { } }
+  return RN[nrm(name)];
+}
+/* every national flag is embedded as a small image (rendered from the real flag artwork), so flags never depend on the network */
+/* >>> PASTE YOUR ORIGINAL FLAGDATA OBJECT HERE (the big base64 line), replacing the empty {} below <<< */
+const FLAGDATA = {};
+const PAT = { fr: "v 0055a4 fff ef4135", de: "h 000 d00 fc0", it: "v 009246 fff ce2b37", ie: "v 169b62 fff ff883e", be: "v 000 fae042 ed2939", nl: "h ae1c28 fff 21468b", ru: "h fff 0039a6 d52b1e", pl: "h fff dc143c", ua: "h 0057b7 ffd700", at: "h ed2939 fff ed2939", hu: "h ce2939 fff 477050", bg: "h fff 00966e d62612", ro: "v 002b7f fcd116 ce1126", lt: "h fdb913 006a44 c1272d", ee: "h 0072ce 000 fff", lv: "h 9e3039 fff 9e3039", lu: "h ed2939 fff 00a1de", co: "h fcd116 fcd116 003893 ce1126", pe: "v d91023 fff d91023", ng: "v 008751 fff 008751", ml: "v 14b53a fcd116 ce1126", gn: "v ce1126 fcd116 009460", sn: "v 00853f fdef42 e31b23", ci: "v f77f00 fff 009e60", td: "v 002664 fecb00 c60c30", ye: "h ce1126 fff 000", eg: "h ce1126 fff 000", iq: "h ce1126 fff 000", sy: "h ce1126 fff 000", ga: "h 009e60 fcd116 3a75c4", am: "h d90012 0033a0 f2a800", bo: "h d52b1e f9e300 007934", et: "h 078930 fcdd09 da121a", gh: "h ce1126 fcd116 006b3f", th: "h a51931 f4f5f8 2d2a4a f4f5f8 a51931", id: "h ff0000 fff", mc: "h ce1126 fff", es: "h aa151b f1bf00 f1bf00 aa151b", sl: "h 1eb53a fff 0072c6", sd: "h d21034 fff 000", ly: "h e70013 000 239e46", bf: "h ef2b2d 009e49", mm: "h fecb00 34b233 ea2839", hr: "h f00 fff 171796", si: "h fff 005da4 ed1c24", sk: "h fff 0b4ea2 ee1c25", rs: "h c6363c 0c4076 fff", mu: "h ea2839 1a206d ffd500 00a551" };
+const AGG = [["Passive", .6], ["Normal", 1], ["Aggressive", 1.8], ["Warmonger", 3.5], ["Chaos", 6]], SPEEDS = [1, 2, 4, 8, 16], UT = { l: "Army", n: "Fleet", a: "Air wing" }, UVL = ["Units: all", "Units: key", "Units: hidden"];
+let zt = null, buf = "", root = null, W = null, S = null, C = [], P = [], pid = null, adj = [], sg = null, cv, ctx, mapCv, st, timer = 0, raf = 0, dirty = true, lastPaint = 0, hl = { p: null, c: null, h: null }, hover = -1, view = { x: 0, y: 0, k: 1 }, evAct = [], lab = [], tipT = 0, lastT = 0, tickMs = 700, hlCv, tmpCv, img, i32, labCv, labKey = "", lastHud = 0, lastFr = 0, FI = {}, SPR = new Map(), lv = 0, maskCv, lineCv, brdCv, moved = false;
+const $ = id => document.getElementById(id);
+const hs = n => ((Math.imul(n ^ 0x9e37, 0x85ebca6b) ^ Math.imul(n >>> 3, 0xc2b2ae35)) >>> 7) % 1000 / 1000;
+function mulb(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function rnd() { S.rs = S.rs + 0x6D2B79F5 | 0; let t = Math.imul(S.rs ^ S.rs >>> 15, 1 | S.rs); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+const fmtB = n => Math.abs(n) >= 1e3 ? "$" + (n / 1e3).toFixed(2) + "T" : Math.abs(n) >= 1 ? "$" + n.toFixed(1) + "B" : "$" + (n * 1e3).toFixed(0) + "M";
+const fmtP = n => n >= 1e3 ? (n / 1e3).toFixed(2) + "B" : n >= 1 ? n.toFixed(1) + "M" : (n * 1e3).toFixed(0) + "K";
+const nm = c => `<b style="color:${c.hex}">${c.name}</b>`;
+/* real flag as a small <img>, or a coloured letter tile if a territory has no flag */
+const FSRC = k => FLAGDATA[k] ? [FLAGDATA[k]] : k ? ["https://flagcdn.com/w80/" + k + ".png"] : [];
+window.kwFE = el => { const s = FSRC(el.dataset.fc), n = +el.dataset.n + 1; if (n < s.length) { el.dataset.n = n; el.src = s[n]; } else el.onerror = null; };
+const fi = (c, cl = "") => c.fc ? `<img class="fl ${cl}" alt="" style="background:${c.col}" data-fc="${c.fc}" data-n="0" src="${FSRC(c.fc)[0]}" onerror="kwFE(this)">` : `<i style="background:${c.hex}">${c.name[0]}</i>`;
+
+addEventListener("keydown", e => {
+  const t = e.target; if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+  if (root) { if (e.key === " ") { e.preventDefault(); pause(); } if (e.key === "Escape" && S) { S.un = null; hud(); req(); } if ((e.key === "u" || e.key === "U") && S && S.phase === "play") { S.uv = (S.uv + 1) % 3; hud(); req(); } return; }
+  if (e.key.length !== 1) return;
+  buf = (buf + e.key.toLowerCase()).slice(-CODE.length);
+  if (buf === CODE) { buf = ""; launch(); }
+});
+
+/* ---------- world: real borders rasterised (for ownership), clipped by the vector coastline (for clean edges) ---------- */
+const loadJs = src => new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+const A1URL = "https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@v5.1.2/geojson/ne_50m_admin_1_states_provinces.geojson";
+const ALIAS = {"democratic republic of the congo":"democratic republic congo","republic of the congo":"congo","united republic of tanzania":"tanzania","republic of serbia":"serbia","czech republic":"czechia","the bahamas":"bahamas","ivory coast":"cte divoire","east timor":"timorleste","guinea bissau":"guineabissau","kingdom of eswatini":"eswatini","swaziland":"eswatini","macedonia":"north macedonia","the gambia":"gambia"};
+const ext = r => { let lo = 1e9, hi = -1e9; for (const q of r) { if (q[0] < lo) lo = q[0]; if (q[0] > hi) hi = q[0]; } return [lo, hi]; };
+const unw = r => { const o = []; let off = 0; r.forEach((q, j) => { if (j) { const d = q[0] + off - o[j - 1][0]; if (d > 180) off -= 360; else if (d < -180) off += 360; } o.push([q[0] + off, q[1]]); }); return o; };
+const polysOf = g => (!g ? [] : g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : []).map(poly => poly.map(unw));
+function rast(polys, fn) {
+  let n = 0;
+  for (const poly of polys) {
+    let mn = 90, mx = -90; for (const q of poly[0]) { if (q[1] < mn) mn = q[1]; if (q[1] > mx) mx = q[1]; }
+    const [lo, hi] = ext(poly[0]), shs = [0]; if (hi > 180) shs.push(-360); if (lo < -180) shs.push(360);
+    for (let y = Math.max(0, Math.floor((84 - mx) / STEP)); y <= Math.min(GH - 1, Math.ceil((84 - mn) / STEP)); y++) {
+      const lat = 84 - (y + .5) * STEP;
+      for (const sh of shs) {
+        const xs = [];
+        for (const r of poly) for (let j = 0; j < r.length - 1; j++) { const a = r[j], b = r[j + 1]; if ((a[1] <= lat) !== (b[1] <= lat)) xs.push(sh + a[0] + (lat - a[1]) / (b[1] - a[1]) * (b[0] - a[0])); }
+        xs.sort((p, q) => p - q);
+        for (let t = 0; t + 1 < xs.length; t += 2) for (let x = Math.max(0, Math.ceil((xs[t] + 180) / STEP - .5)); x <= Math.min(GW - 1, Math.floor((xs[t + 1] + 180) / STEP - .5)); x++) { fn(y * GW + x); n++; }
+      }
+    }
+  }
+  return n;
+}
+async function buildWorld() {
+  if (W) return;
+  if (!window.topojson) await loadJs("https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js");
+  const topo = await (await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json")).json();
+  let a1 = null; try { const ld = $("kw-ld"); if (ld) ld.textContent = "Fetching states and provinces…"; a1 = (await (await fetch(A1URL)).json()).features; } catch (e) { a1 = null; }
+  const fs = topojson.feature(topo, topo.objects.countries).features.filter(f => f.properties.name !== "Antarctica");
+  const cid = new Uint16Array(GW * GH), land = new Path2D(), coast = new Path2D();
+  fs.forEach((f, i) => {
+    const polys = polysOf(f.geometry);
+    for (const poly of polys) for (const r of poly) { const [lo, hi] = ext(r), shs = [0]; if (hi > 180) shs.push(-360); if (lo < -180) shs.push(360); for (const sh of shs) { r.forEach((q, j) => { const x = (q[0] + sh + 180) / STEP, y = (84 - q[1]) / STEP; j ? land.lineTo(x, y) : land.moveTo(x, y); }); land.closePath(); } }
+    const any = rast(polys, ix => { cid[ix] = i + 1; });
+    if (!any && polys[0]) { const r = polys[0][0], lo = r.reduce((s, p) => s + p[0], 0) / r.length, la = r.reduce((s, p) => s + p[1], 0) / r.length, x = Math.floor((lo + 180) / STEP), y = Math.floor((84 - la) / STEP); if (x >= 0 && x < GW && y >= 0 && y < GH) cid[y * GW + x] = i + 1; }
+  });
+  /* TRUE coastline only (exterior arcs), so conquered borders never leave a white line behind */
+  for (const ls of topojson.mesh(topo, topo.objects.countries, (a, b) => a === b).coordinates) ls.forEach((q, j) => { const x = (q[0] + 180) / STEP, y = (84 - q[1]) / STEP; if (j && Math.abs(q[0] - ls[j - 1][0]) < 180) coast.lineTo(x, y); else coast.moveTo(x, y); });
+  const R = mulb(7), cells = fs.map(() => []);
+  for (let i = 0; i < GW * GH; i++) if (cid[i]) cells[cid[i] - 1].push(i);
+  /* real admin-1 regions (US states, Canadian provinces, Chinese provinces, ...) rasterised and clipped to their country */
+  const ac = new Int32Array(GW * GH).fill(-1), feats = fs.map(() => []), byName = new Map(fs.map((f, i) => [nrm(f.properties.name), i]));
+  if (a1) a1.forEach((f, j) => { const an = nrm(f.properties.admin || ""), ci = byName.get(ALIAS[an] || an); if (ci === undefined || !f.geometry) return; feats[ci].push(j); rast(polysOf(f.geometry), ix => { if (cid[ix] === ci + 1) ac[ix] = j; }); });
+  pid = new Int16Array(GW * GH).fill(-1); P = []; const pc = fs.map(() => []);
+  const mkP = (ci, cs, name) => {
+    const idx = P.length, p = { c: ci, cells: cs, x: 0, y: 0, name }; P.push(p); pc[ci].push(idx);
+    for (const i of cs) { pid[i] = idx; p.x += i % GW; p.y += i / GW | 0; } p.x /= cs.length; p.y /= cs.length;
+    const lat = 84 - p.y * STEP, r = R(); p.t = Math.abs(lat) > 63 ? 5 : Math.abs(lat) < 32 && r < .35 ? 4 : r < .5 ? 0 : r < .72 ? 1 : r < .88 ? 2 : 3;
+    p.w = cs.length * (.6 + R() * .8); p.dev = .5 + R(); p.res = R() < .2 ? R() * 6 | 0 : -1;
+  };
+  fs.forEach((f, ci) => {
+    const L = cells[ci]; if (!L.length) return;
+    const fj = feats[ci]; let grp = null;
+    if (fj.length > 1) {
+      const nb = k => cid[k] === ci + 1 ? ac[k] : -1; let left = L.filter(i => ac[i] < 0);
+      for (let g = 0; g < 60 && left.length; g++) {
+        const ch = [], rest = []; for (const i of left) { const x = i % GW; let n = x > 0 ? nb(i - 1) : -1; if (n < 0 && x < GW - 1) n = nb(i + 1); if (n < 0 && i >= GW) n = nb(i - GW); if (n < 0 && i < GW * (GH - 1)) n = nb(i + GW); n >= 0 ? ch.push([i, n]) : rest.push(i); }
+        if (!ch.length) break; for (const [i, n] of ch) ac[i] = n; left = rest;
+      }
+      grp = new Map(); for (const i of L) { const j = ac[i]; if (j >= 0) { let a = grp.get(j); if (!a) grp.set(j, a = []); a.push(i); } }
+      if (grp.size < 2) grp = null;
+      else { for (const [j, cs] of grp) mkP(ci, cs, a1[j].properties.name || f.properties.name); const lone = L.filter(i => ac[i] < 0); if (lone.length) mkP(ci, lone, f.properties.name); return; }
+    }
+    /* fallback for countries without admin-1 data: k-means regions as before */
+    const k = Math.max(1, Math.min(60, Math.round(L.length / 38))); let sd = [];
+    for (let j = 0; j < k; j++) { const i = L[R() * L.length | 0]; sd.push([i % GW, i / GW | 0]); }
+    const asg = new Int16Array(L.length);
+    for (let it = 0; it < 3; it++) {
+      const sx = Array(k).fill(0), sy = Array(k).fill(0), n = Array(k).fill(0);
+      L.forEach((i, m) => { const x = i % GW, y = i / GW | 0; let b = 0, bd = 1e9; for (let j = 0; j < k; j++) { const d = (sd[j][0] - x) ** 2 + (sd[j][1] - y) ** 2; if (d < bd) { bd = d; b = j; } } asg[m] = b; sx[b] += x; sy[b] += y; n[b]++; });
+      for (let j = 0; j < k; j++) if (n[j]) sd[j] = [sx[j] / n[j], sy[j] / n[j]];
+    }
+    const bk = Array.from({ length: k }, () => []); L.forEach((i, m) => bk[asg[m]].push(i));
+    const cx = L.reduce((s, i) => s + i % GW, 0) / L.length, cy = L.reduce((s, i) => s + (i / GW | 0), 0) / L.length, parts = bk.filter(b => b.length), tot = {}, run = {}, info = parts.map(cs => {
+      const mx = cs.reduce((s, i) => s + i % GW, 0) / cs.length - cx, my = cs.reduce((s, i) => s + (i / GW | 0), 0) / cs.length - cy, far = Math.hypot(mx, my) > Math.sqrt(L.length) * .45;
+      const a = my < -Math.abs(mx) * .6 ? "North" : my > Math.abs(mx) * .6 ? "South" : "", b = mx > Math.abs(my) * .6 ? "east" : mx < -Math.abs(my) * .6 ? "west" : "";
+      const dn = !far ? "Central" : a && b ? a + "-" + b + "ern" : a ? a + "ern" : b ? b[0].toUpperCase() + b.slice(1) + "ern" : "Central"; tot[dn] = (tot[dn] || 0) + 1; return dn;
+    });
+    parts.forEach((cs, q) => { const dn = info[q]; run[dn] = (run[dn] || 0) + 1; mkP(ci, cs, parts.length === 1 ? f.properties.name : `${dn} ${f.properties.name}${tot[dn] > 1 ? " " + run[dn] : ""}`); });
+  });
+  /* grow provinces one cell outward so the vector coastline clip leaves no gaps */
+  const grow = [];
+  for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) { const i = y * GW + x; if (pid[i] >= 0) continue; const n = x > 0 && pid[i - 1] >= 0 ? pid[i - 1] : x < GW - 1 && pid[i + 1] >= 0 ? pid[i + 1] : y > 0 && pid[i - GW] >= 0 ? pid[i - GW] : y < GH - 1 && pid[i + GW] >= 0 ? pid[i + GW] : -1; if (n >= 0) grow.push([i, n]); }
+  grow.forEach(([i, n]) => { pid[i] = n; P[n].cells.push(i); });
+  adj = P.map(() => new Set());
+  for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
+    const a = pid[y * GW + x]; if (a < 0) continue;
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= GW || ny >= GH) continue; const b = pid[ny * GW + nx]; if (b >= 0 && b !== a) adj[a].add(b); }
+  }
+  adj = adj.map(s => [...s]);
+  /* coarse sea grid for ships: a coarse cell is sea only if all its fine cells are sea; each province gets a port point */
+  sg = new Uint8Array(CW * CH);
+  for (let cy = 0; cy < CH; cy++) for (let cx = 0; cx < CW; cx++) { let ok = 1; for (let dy = 0; dy < 3 && ok; dy++) for (let dx = 0; dx < 3; dx++) { const x = cx * 3 + dx, y = cy * 3 + dy; if (x < GW && y < GH && pid[y * GW + x] >= 0) { ok = 0; break; } } sg[cy * CW + cx] = ok; }
+  P.forEach(p => {
+    p.pt = null; let b = 1e9;
+    for (const i of p.cells) { const cx = (i % GW) / 3 | 0, cy = (i / GW | 0) / 3 | 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = cx + dx, Y = cy + dy; if (X >= 0 && Y >= 0 && X < CW && Y < CH && sg[Y * CW + X]) { const d = (X * 3 + 1.5 - p.x) ** 2 + (Y * 3 + 1.5 - p.y) ** 2; if (d < b) { b = d; p.pt = [X, Y]; } } }
+    }
+  });
+  /* every border segment remembers the two provinces on either side, so borders between lands that now share an owner can be hidden */
+  const bord = new Path2D(), SGM = [], pAt = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y); return xi < 0 || yi < 0 || xi >= GW || yi >= GH ? -1 : pid[yi * GW + xi]; };
+  for (const ls of topojson.mesh(topo, topo.objects.countries, (a, b) => a !== b).coordinates) ls.forEach((q, j) => {
+    const x = (q[0] + 180) / STEP, y = (84 - q[1]) / STEP;
+    if (j && Math.abs(q[0] - ls[j - 1][0]) < 180) {
+      bord.lineTo(x, y); const pr = ls[j - 1], x0 = (pr[0] + 180) / STEP, y0 = (84 - pr[1]) / STEP, dx = x - x0, dy = y - y0, l = Math.hypot(dx, dy) || 1, mx = (x + x0) / 2, my = (y + y0) / 2, nx = -dy / l * .9, ny = dx / l * .9;
+      SGM.push(x0, y0, x, y, pAt(mx + nx, my + ny), pAt(mx - nx, my - ny));
+    } else bord.moveTo(x, y);
+  });
+  W = { names: fs.map(f => f.properties.name), pc, cc: cells.map(c => c.length), land, coast, bord, seg: new Float32Array(SGM) };
+  mapCv = document.createElement("canvas"); mapCv.width = GW * SC; mapCv.height = GH * SC; mkLayers();
+}
+function mkLayers() {
+  const iw = GW * SC, ih = GH * SC; maskCv = document.createElement("canvas"); lineCv = document.createElement("canvas"); brdCv = document.createElement("canvas"); maskCv.width = lineCv.width = brdCv.width = iw; maskCv.height = lineCv.height = brdCv.height = ih;
+  let g = maskCv.getContext("2d"); g.setTransform(SC, 0, 0, SC, 0, 0); g.fillStyle = "#000"; g.fill(W.land);
+  g = lineCv.getContext("2d"); g.setTransform(SC, 0, 0, SC, 0, 0); g.lineJoin = "round"; g.lineWidth = 1.3 / SC; g.strokeStyle = "rgba(200,225,255,.65)"; g.stroke(W.coast);
+}
+function seaPath(a, b) {
+  const t = b[1] * CW + b[0], s = a[1] * CW + a[0], prev = new Int32Array(CW * CH).fill(-2), q = [s]; prev[s] = -1;
+  for (let h = 0; h < q.length && prev[t] === -2; h++) {
+    const c = q[h], x = c % CW, y = c / CW | 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = (x + dx + CW) % CW, Y = y + dy; if (Y < 0 || Y >= CH) continue; const n = Y * CW + X; if (prev[n] === -2 && sg[n]) { prev[n] = c; q.push(n); } }
+  }
+  if (prev[t] === -2) return null;
+  const r = []; for (let c = t; c !== -1; c = prev[c]) r.unshift([c % CW, c / CW | 0]); return r;
+}
+
+/* ---------- state ---------- */
+function newState(me, diff) {
+  S = { tr: {}, cpg: {}, day: 0, rs: 1337, own: Int16Array.from(P, p => p.c), fort: new Uint8Array(P.length), gd: new Float32Array(P.length), hq: new Uint8Array(P.length), U: [], uid: 1, fr: [], hit: [], un: null, wars: [], rd: {}, me, diff: diff || 1, mode: "pol", tab: "sel", sel: -1, speed: 1, paused: true, log: [], phase: "menu", over: null, ev: null, pick: -1, won: false, uv: 1, sb: { on: false, a: -1, b: -1, tool: "none" } };
+  C = W.names.map((name, ci) => {
+    const L = W.pc[ci];
+    if (!L.length) return { id: ci, name, alive: false, al: [], q: [], tech: {}, master: -1 };
+    const tb = TB[name], pop = tb ? tb[0] : Math.max(.2, W.cc[ci] * .18 * (.4 + hs(ci * 7) * 1.2)), gdp = tb ? tb[1] : pop * (1 + hs(ci * 13) * 14);
+    const sw = L.reduce((s, p) => s + P[p].w, 0); L.forEach(p => P[p].pop = pop * P[p].w / sw);
+    const g = GOVO.find(a => a.includes(name)), h = (ci * 137.5) % 360 | 0, div0 = Math.round(Math.sqrt(pop * gdp) * .04) + 2;
+    const rgb = NC[name] ? hex2rgb(NC[name]) : hslRgb(h, 40 + ci % 3 * 10, 38 + ci % 4 * 5), lt = rgb.map(v => Math.round(v + (255 - v) * .4));
+    return { id: ci, name, fc: FC[name] || guessCode(name) || "", alive: true, master: -1, pop, gdp, gov: g ? g[0] : GOVS[hs(ci * 5) * 5 | 0], stab: 55 + hs(ci) * 30, gold: gdp * .02, tax: .25, civ: Math.max(1, Math.round(Math.pow(gdp, .33))), mil: Math.max(1, Math.round(div0 / 9)), div: 0, nav: 0, air: 0, blk: 0, rc: 0, div0, tech: { l: 0, i: 0, f: 0, e: 0, m: 0, n: 0, v: 0, a: 0 }, res: "", prog: 0, al: [], q: [], n0: L.length, aggr: .5 + hs(ci * 3), we: false, rgbv: rgb, col: `rgb(${rgb})`, c32: rgb32(rgb), hex: `rgb(${lt})`, cap: L.reduce((b, p) => P[p].pop > P[b].pop ? p : b, L[0]) };
+  });
+  rebuild(); fixColors();
+  for (let p = 0; p < P.length; p++) S.gd[p] = gmax(p);
+  for (const c of C) {
+    if (!c.alive) continue;
+    const L = [...W.pc[c.id]].sort((a, b) => P[b].pop - P[a].pop), tot = c.div0 * .6, k = Math.max(1, Math.min(L.length, 10, Math.round(tot / 4)));
+    [c.cap, ...L.filter(x => x !== c.cap)].slice(0, k).forEach(p => mk(c.id, "l", tot / k, p));
+    const coast = L.filter(p => P[p].pt), nv = Math.sqrt(c.gdp) / 10, av = Math.sqrt(c.gdp) / 12;
+    if (nv >= 1 && coast.length) { const n = nv > 9 && coast.length > 1 ? 2 : 1; for (let i = 0; i < n; i++) mk(c.id, "n", nv / n, coast[i]); }
+    if (av >= 1) { const n = av > 9 && L.length > 1 ? 2 : 1; for (let i = 0; i < n; i++) mk(c.id, "a", av / n, i ? L.find(x => x !== c.cap) : c.cap); }
+  }
+  sums(); mapView(); dirty = true;
+}
+/* neighbouring nations must never look alike: keep each nation's traditional colour, but nudge hue / lightness of the smaller one until it is clearly different from every neighbour */
+function fixColors() {
+  const nb = C.map(() => new Set());
+  for (let p = 0; p < P.length; p++) for (const q of adj[p]) if (P[p].c !== P[q].c) nb[P[p].c].add(P[q].c);
+  const order = C.filter(c => c.alive).sort((a, b) => W.cc[b.id] - W.cc[a.id]), done = new Set();
+  for (const c of order) {
+    const others = [...nb[c.id]].filter(x => done.has(x)).map(x => C[x].rgbv), ok = v => others.every(o => cdist(v, o) >= 150); let best = c.rgbv;
+    if (!ok(best)) {
+      const [h, sa, l] = rgb2hsl(best); let bs = 1e9;
+      for (const dh of [0, 20, -20, 40, -40, 60, -60, 85, -85, 115, -115, 150, 180]) for (const dl of [0, 12, -12, 22, -22]) for (const ds of [0, 15, -15]) {
+        const v = hslRgb((h + dh + 360) % 360, Math.max(30, Math.min(90, sa + ds)), Math.max(28, Math.min(72, l + dl)));
+        if (ok(v)) { const cost = Math.abs(dh) + Math.abs(dl) * 1.5 + Math.abs(ds); if (cost < bs) { bs = cost; best = v; } }
+      }
+    }
+    c.rgbv = best; c.col = `rgb(${best})`; c.c32 = rgb32(best); c.hex = `rgb(${best.map(v => Math.round(v + (255 - v) * .4))})`; done.add(c.id);
+  }
+}
+function rebuild() {
+  S.owned = C.map(() => new Set()); S.own.forEach((o, p) => S.owned[o].add(p));
+  S.enm = C.map(() => new Set()); S.wars.forEach(w => { S.enm[w.a].add(w.b); S.enm[w.b].add(w.a); });
+  S.rc = C.map(() => 0); P.forEach((p, i) => { if (p.res >= 0) S.rc[S.own[i]]++; });
+}
+function mk(o, t, n, p) {
+  const q = P[p]; let x = q.x, y = q.y; if (t === "n") { x = q.pt[0] * 3 + 1.5; y = q.pt[1] * 3 + 1.5; }
+  const u = { id: S.uid++, o, t, n, p, x, y, ox: x, oy: y, path: [], tg: -1, sp: t === "l" ? 3 : t === "n" ? 6 : 13.5 }; S.U.push(u); return u;
+}
+function addUnit(c, t, n, p) { if (p === undefined || p < 0) return; const u = S.U.find(u => u.o === c.id && u.t === t && u.p === p && !u.path.length && u.tg < 0); if (u) u.n += n; else mk(c.id, t, n, p); }
+const port = c => [...S.owned[c.id]].filter(p => P[p].pt).sort((a, b) => P[b].pop - P[a].pop)[0];
+function sums() { for (const c of C) c.div = c.nav = c.air = c.blk = 0; for (const u of S.U) { const c = C[u.o]; if (u.t === "l") c.div += u.n; else if (u.t === "n") c.nav += u.n; else c.air += u.n; } }
+
+/* ---------- rules ---------- */
+const key = (a, b) => a < b ? a + "-" + b : b + "-" + a;
+const rel = (a, b) => Math.max(-100, Math.min(100, ((hs(Math.min(a, b) * 977 + Math.max(a, b)) * 40 - 20) | 0) + (C[a].gov === C[b].gov ? 12 : 0) + (S.rd[key(a, b)] || 0)));
+const bump = (a, b, v) => { S.rd[key(a, b)] = (S.rd[key(a, b)] || 0) + v; };
+const atWar = (a, b) => S.enm[a].has(b), allied = (a, b) => C[a].al.includes(b) || C[a].master === b || C[b].master === a;
+const rev = c => c.gdp * c.tax / 365 * (.6 + c.stab / 150) * (1 + .02 * c.tech.f) * (1 + .004 * S.rc[c.id]) * (1 - Math.min(.5, .05 * c.blk));
+const net = c => rev(c) * (1 - .25 * c.div / c.div0);
+const dcost = c => rev(c) * 20 / (c.div0 * .15 + 1);
+const gmax = p => { const o = S.own[p], c = C[o]; return (.4 + c.div0 * .5 / c.n0) * TM[P[p].t] * (1 + .3 * S.fort[p]) * (1 + .06 * c.tech.l) * (c.cap === p ? 1.4 : 1); };
+const dstr = () => new Date(DAY0 + S.day * 864e5).toISOString().slice(0, 10);
+const say = t => { S.log.unshift(`<small>${dstr()}</small> ${t}`); S.log.length = Math.min(S.log.length, 40); };
+const pw = c => c.div * (1 + .06 * c.tech.l);
+function idx() { S.bp = new Map(); S.W = []; for (const u of S.U) { if (u.t === "l") { let a = S.bp.get(u.p); if (!a) S.bp.set(u.p, a = []); a.push(u); } else if (u.t === "a") S.W.push(u); } }
+const airPow = (o, q) => { let s = 0; for (const u of S.W) if ((u.o === o || allied(u.o, o)) && Math.hypot(u.x - P[q].x, u.y - P[q].y) < 27) s += u.n * (1 + .06 * C[u.o].tech.a); return s; };
+const reachOf = q => Math.max(4, Math.sqrt(P[q].cells.length) * .45);
+const defAt = q => S.gd[q] + (S.bp.get(q) || []).reduce((t, u) => t + u.n, 0);
+
+function join(x, y) { S.wars.push({ a: x, b: y, t: S.day, sa: 0, sb: 0, s: 0 }); S.enm[x].add(y); S.enm[y].add(x); say(`${nm(C[x])} joins the war against ${nm(C[y])}`); if (y === S.me && !S.ev) openEv("Another enemy", `${C[x].name} has joined the war against you.`, [["Understood", () => { }]]); }
+function declare(a, b) {
+  if (a === b || atWar(a, b) || allied(a, b) || !C[a].alive || !C[b].alive || C[a].master >= 0) return;
+  if ((S.tr[key(a, b)] || 0) > S.day) { if (a === S.me || b === S.me) toast("A truce is still in force"); return; }
+  S.wars.push({ a, b, t: S.day, sa: 0, sb: 0, s: 0 }); S.enm[a].add(b); S.enm[b].add(a); bump(a, b, -50);
+  say(`${nm(C[a])} declared war on ${nm(C[b])}`);
+  if (b === S.me && !S.ev) openEv("War declared on you", `${C[a].name} has declared war on you. Mobilize troops and march them to the border. Overseas enemies must be invaded from a port province.`, [["To arms!", () => { }]]);
+  else if (b === S.me || a === S.me) toast("War: " + C[a].name + " vs " + C[b].name);
+  for (const x of C[b].al) if (x !== a && C[x].alive && !atWar(x, a) && !allied(x, a)) join(x, a);
+  for (const x of C[a].al) if (x !== b && C[x].alive && !atWar(x, b) && !allied(x, b) && rnd() < .8) join(x, b);
+  for (const p of C) { if (!p.alive) continue; if (p.master === b && p.id !== a && !atWar(p.id, a)) join(p.id, a); if (p.master === a && p.id !== b && !atWar(p.id, b)) join(p.id, b); }
+}
+function peace(a, b) {
+  S.wars = S.wars.filter(w => !(w.a === a && w.b === b || w.a === b && w.b === a)); S.enm[a].delete(b); S.enm[b].delete(a); say(`Peace between ${nm(C[a])} and ${nm(C[b])}`);
+  for (const u of S.U) if ((u.o === a || u.o === b) && u.path.length && u.t === "l") {
+    const q = u.path[0].p, o = q === undefined ? -1 : S.own[q];
+    if (u.amph) { u.path = []; u.amph = 0; u.x = u.ox = P[u.p].x; u.y = u.oy = P[u.p].y; }
+    else if (o !== u.o && !allied(u.o, o)) u.path = [];
+  }
+}
+function ally(a, b) {
+  if (allied(a, b) || atWar(a, b)) return "Not possible";
+  const r = rel(a, b), common = [...S.enm[a]].some(x => S.enm[b].has(x)), ideo = (C[a].gov === "Communist state") !== (C[b].gov === "Communist state");
+  if (r >= (ideo ? 55 : 35) || (common && r >= 0)) { C[a].al.push(b); C[b].al.push(a); bump(a, b, 15); say(`${nm(C[a])} and ${nm(C[b])} formed an alliance`); return "Alliance formed"; }
+  return `${C[b].name} declines`;
+}
+const unally = (a, b) => { C[a].al = C[a].al.filter(x => x !== b); C[b].al = C[b].al.filter(x => x !== a); bump(a, b, -25); say(`${nm(C[a])} left its alliance with ${nm(C[b])}`); };
+
+/* peace: war score (0-100) decides who can dictate terms; captured provinces, held land and the capital raise it; a one-year truce follows */
+const wfind = (a, b) => S.wars.find(w => w.a === a && w.b === b || w.a === b && w.b === a);
+const wsc = (w, x) => x === w.a ? w.s : -w.s;
+const wval = (p, d) => 4 + 70 * P[p].pop / Math.max(.5, C[d].pop) + (C[d].cap === p ? 15 : 0);
+const held = (w, x) => ((x === w.a ? w.ta : w.tb) || []).filter(e => S.own[e.p] === x && e.from !== x).map(e => e.p);
+function give(p, to) {
+  const b = S.own[p]; S.own[p] = to; S.owned[b].delete(p); S.owned[to].add(p); if (P[p].res >= 0) { S.rc[b]--; S.rc[to]++; }
+  if (C[b].cap === p) { const n = [...S.owned[b]][0]; C[b].cap = n === undefined ? -1 : n; }
+  S.gd[p] = gmax(p) * .5; if (C[to].cap < 0) C[to].cap = p; dirty = true;
+}
+/* clean borders: send exclaves home, swallow enclaves */
+function tidy(w) {
+  for (const [L, who] of [[w.ta, w.a], [w.tb, w.b]]) for (const e of L || []) { const p = e.p, f = e.from; if (S.own[p] !== who || f === who || !C[f].alive) continue; if (!adj[p].some(q => S.own[q] === who) && adj[p].some(q => S.own[q] === f)) give(p, f); }
+  for (const x of [w.a, w.b]) for (const p of [...S.owned[x]]) { if (C[x].cap === p || !adj[p].length) continue; const o = S.own[adj[p][0]]; if (o !== x && (o === w.a || o === w.b) && adj[p].every(q => S.own[q] === o)) give(p, o); }
+}
+/* pull troops out of land that is no longer friendly */
+function expel() {
+  for (const u of S.U) if (u.t === "l" && !u.amph && S.own[u.p] !== u.o && !allied(u.o, S.own[u.p]) && !atWar(u.o, S.own[u.p])) { const c = C[u.o].cap; if (c < 0) continue; const r = route(u.o, u.p, c); if (r) u.path = r; else { u.x = u.ox = P[c].x; u.y = u.oy = P[c].y; u.p = c; u.path = []; } }
+}
+function conclude(w, type, win, opt) {
+  const a = w.a, b = w.b, lose = win === a ? b : a;
+  if (type === "white") { for (const [L, who] of [[w.ta, a], [w.tb, b]]) for (const e of L || []) if (S.own[e.p] === who && C[e.from].alive) give(e.p, e.from); }
+  else if (type === "repar") { const L = C[lose], o = C[win], amt = Math.min(Math.max(L.gold, 0) + rev(L) * 30, rev(L) * 120); L.gold -= amt; o.gold += amt; L.stab -= 3; }
+  else if (type === "annex") { for (const p of opt || []) if (S.own[p] === lose) give(p, win); C[lose].stab -= 4; }
+  else if (type === "puppet") { C[lose].master = win; C[lose].al = C[lose].al.filter(x => { if (atWar(win, x)) { C[x].al = C[x].al.filter(y => y !== lose); return false; } return true; }); }
+  S.tr[key(a, b)] = S.day + 365; peace(a, b); tidy(w); expel();
+  say(`${nm(C[a])} and ${nm(C[b])} signed ${type === "white" ? "a white peace, restoring borders" : type === "annex" ? `a treaty: ${nm(C[win])} annexes ${(opt || []).length} province(s)` : type === "puppet" ? `a treaty: ${nm(C[lose])} becomes a puppet of ${nm(C[win])}` : type === "repar" ? `a treaty with reparations paid by ${nm(C[lose])}` : "a ceasefire along the current lines"}`);
+}
+const annexList = (w, a, budget) => { let s = 0; return held(w, a).map(p => [p, wval(p, a === w.a ? w.b : w.a) * .6]).sort((x, y) => x[1] - y[1]).filter(([, c]) => (s + c <= budget) ? (s += c, 1) : 0).map(x => x[0]); };
+function offer(w, a, b, type) {
+  const sa = wsc(w, a), sb = -sa;
+  if (type === "white" || type === "status") { if (sb > 25) return C[b].name + " refuses: it is winning"; conclude(w, type, a); return "Peace signed"; }
+  if (type === "repar") { if (sa < 25) return "Not enough war score (need 25)"; conclude(w, "repar", a); return "Peace signed"; }
+  if (type === "annex") { const L = annexList(w, a, sa); if (!L.length) return "Not enough war score for any province"; conclude(w, "annex", a, L); return "Peace signed"; }
+  if (type === "puppet") { if (sa < 85) return "Not enough war score (need 85)"; if (C[b].master >= 0) return "Already a puppet"; conclude(w, "puppet", a); return "Puppet state created"; }
+  if (type === "pay") { if (sb < 20) return C[b].name + " refuses to accept your offer"; conclude(w, "repar", b); return "Peace signed"; }
+  if (type === "sub") { if (sb < 70) return C[b].name + " refuses"; conclude(w, "puppet", b); return "You are now a puppet"; }
+  return "";
+}
+function peaceMenu(a, b) {
+  const w = wfind(a, b); if (!w) return "No war"; if (S.day - w.t < 30) return "Talks open after 30 days of war";
+  const s = wsc(w, a), o = [["White peace: return conquered land", () => toast(offer(w, a, b, "white"))], ["Ceasefire: keep the current lines", () => toast(offer(w, a, b, "status"))]];
+  if (s >= 25) o.push(["Demand reparations (25 pts)", () => toast(offer(w, a, b, "repar"))]);
+  if (annexList(w, a, s).length) o.push([`Annex captured provinces (${annexList(w, a, s).length} affordable)`, () => toast(offer(w, a, b, "annex"))]);
+  if (s >= 85) o.push(["Force them to become your puppet (85 pts)", () => toast(offer(w, a, b, "puppet"))]);
+  if (s <= -20) o.push(["Capitulate: pay reparations", () => toast(offer(w, a, b, "pay"))]);
+  if (s <= -70) o.push(["Capitulate: become a puppet", () => toast(offer(w, a, b, "sub"))]);
+  o.push(["Fight on", () => { }]);
+  openEv("Peace talks with " + C[b].name, `War score ${s > 0 ? "+" : ""}${s.toFixed(0)} / 100. Captured provinces, held territory and the enemy capital raise your score, and terms cost points. The war has lasted ${S.day - w.t} days.`, o); return "";
+}
+function warEnd(w) {
+  const dur = S.day - w.t; if (dur < 150) return;
+  const win = w.s >= 0 ? w.a : w.b, lose = win === w.a ? w.b : w.a, s = Math.abs(w.s), L = held(w, win), human = S.me >= 0 && (w.a === S.me || w.b === S.me);
+  const terms = s >= 85 && C[lose].master < 0 && !(C[win].master >= 0) ? "puppet" : L.length && s >= 25 ? "annex" : s < 12 ? "white" : "repar", opt = terms === "annex" ? annexList(w, win, s) : null;
+  const txt = terms === "puppet" ? "become a puppet" : terms === "annex" ? "cede captured provinces" : terms === "white" ? "accept white peace" : "pay reparations";
+  if (human) {
+    if (S.ev || (w.nag || 0) > S.day || s < 40) return; w.nag = S.day + 60;
+    if (lose === S.me) openEv("Enemy demands", `${C[win].name} is winning and demands that you ${txt}.`, [["Accept", () => { const x = wfind(w.a, w.b); if (x) conclude(x, terms, win, opt); }], ["Refuse", () => { }]]);
+    else openEv("Enemy asks for terms", `${C[lose].name} is beaten and will ${txt}.`, [["Accept", () => { const x = wfind(w.a, w.b); if (x) conclude(x, terms, win, opt); }], ["Fight on", () => { }]]);
+    return;
+  }
+  if (s >= 55 || dur > 900 && s < 15 && rnd() < .2 || dur > 1500) conclude(w, terms, win, opt);
+}
+function capture(a, p) {
+  const b = S.own[p], B = C[b]; S.own[p] = a; S.owned[b].delete(p); S.owned[a].add(p); S.gd[p] = gmax(p) * .3;
+  if (P[p].res >= 0) { S.rc[b]--; S.rc[a]++; }
+  const w = S.wars.find(w => w.a === a && w.b === b || w.a === b && w.b === a);
+  if (w) { const v = wval(p, b); if (w.a === a) { w.sa++; w.s = Math.min(100, w.s + v); (w.ta = w.ta || []).push({ p, from: b }); } else { w.sb++; w.s = Math.max(-100, w.s - v); (w.tb = w.tb || []).push({ p, from: b }); } }
+  if (B.cap === p) { const n = [...S.owned[b]][0]; B.cap = n === undefined ? -1 : n; B.stab -= 8; say(`${nm(C[a])} captured the capital of ${nm(B)}`); }
+  dirty = true; req();
+  if (S.owned[b].size <= B.n0 * .25) collapse(b, a);
+}
+function collapse(b, a) {
+  const B = C[b]; for (const p of [...S.owned[b]]) { S.own[p] = a; S.owned[a].add(p); if (P[p].res >= 0) S.rc[a]++; }
+  for (const u of S.U) if (u.o === b) { u.o = a; u.path = []; u.tg = -1; u.amph = 0; }
+  S.owned[b].clear(); B.alive = false; B.al.forEach(x => { C[x].al = C[x].al.filter(y => y !== b); }); B.al = [];
+  S.wars.filter(w => w.a === b || w.b === b).forEach(w => S.enm[w.a === b ? w.b : w.a].delete(b)); S.wars = S.wars.filter(w => w.a !== b && w.b !== b); S.enm[b].clear();
+  C[a].pop += B.pop * .8; C[a].gdp += B.gdp * .6; say(`${nm(B)} capitulated and was annexed by ${nm(C[a])}`);
+  if (b === S.me) { S.over = { t: "Your nation has fallen", s: `${B.name} was annexed by ${C[a].name} on ${dstr()}.` }; S.paused = true; }
+}
+function build(c, k, p) {
+  const X = C[c], di = rev(X), cost = { civ: 30, mil: 30, nav: 30, air: 30, fort: 8 }[k] * di;
+  if (X.q.length >= 3 + (X.civ / 8 | 0)) return "No free construction slot";
+  if (k === "nav" && port(X) === undefined) return "No ports";
+  if (X.gold < cost) return "Not enough funds";
+  if (k === "fort" && S.fort[p] >= 3) return "Maximum fortification";
+  X.gold -= cost; X.q.push({ k, p, l: k === "fort" ? 15 : 25 }); return "";
+}
+const techCost = c => 120 * Math.pow(c.tech[c.res] + 1, 1.5);
+function mobilize(c, n) { const X = C[c], cost = n * dcost(X) * 1.5; if (X.gold < cost) return "Not enough funds"; if (X.div + n > X.pop * .8 + 5) return "Manpower exhausted"; X.gold -= cost; addUnit(X, "l", n, X.cap); return ""; }
+
+/* ---------- orders: armies walk, ships sail, planes fly ---------- */
+function route(o, a, b) {
+  const prev = new Map([[a, -1]]), q = [a];
+  for (let h = 0; h < q.length; h++) { const x = q[h]; if (x === b) break; for (const y of adj[x]) if (!prev.has(y)) { const ow = S.own[y]; if (y === b || ow === o || allied(o, ow)) { prev.set(y, x); q.push(y); } } }
+  if (!prev.has(b)) return null;
+  const r = []; for (let x = b; x !== a; x = prev.get(x)) r.unshift({ x: P[x].x, y: P[x].y, p: x }); return r;
+}
+function sail(u, pt) { const r = seaPath([Math.min(CW - 1, u.x / 3 | 0), Math.min(CH - 1, u.y / 3 | 0)], pt); if (!r) return false; u.path = r.slice(1).map(c => ({ x: c[0] * 3 + 1.5, y: c[1] * 3 + 1.5 })); return true; }
+function orderTo(u, fx, fy) {
+  const x = fx | 0, y = fy | 0, p = x < 0 || y < 0 || x >= GW || y >= GH ? -1 : pid[y * GW + x];
+  if (p >= 0) { const o = S.own[p]; if (o !== u.o && !allied(u.o, o) && !atWar(u.o, o)) return "Not at war with " + C[o].name; }
+  if (u.t === "l") {
+    if (p < 0) return "Armies cannot cross the sea"; if (p === u.p && !u.path.length) return null;
+    const r = route(u.o, u.p, p);
+    if (r) { u.amph = 0; u.path = r; return S.own[p] === u.o || allied(u.o, S.own[p]) ? "Moving out" : "Attack ordered"; }
+    if (!P[u.p].pt || !P[p].pt) return "No land route (landings need an army in a port province and a coastal target)";
+    const sp = seaPath(P[u.p].pt, P[p].pt); if (!sp) return "No sea route";
+    u.path = sp.map(c => ({ x: c[0] * 3 + 1.5, y: c[1] * 3 + 1.5 })); u.path.push({ x: P[p].x, y: P[p].y, p }); u.amph = 1; return "Amphibious landing ordered";
+  }
+  if (u.t === "n") {
+    let pt; if (p >= 0) { pt = P[p].pt; if (!pt) return "No sea access"; u.tg = S.own[p] !== u.o && !allied(u.o, S.own[p]) ? p : -1; } else { pt = [x / 3 | 0, y / 3 | 0]; if (!sg[pt[1] * CW + pt[0]]) return "Pick open sea"; u.tg = -1; }
+    return sail(u, pt) ? u.tg >= 0 ? "Blockade ordered" : "Setting sail" : "No sea route";
+  }
+  if (p < 0) return "Pick a province";
+  if (S.own[p] === u.o || allied(u.o, S.own[p])) { u.path = [{ x: P[p].x, y: P[p].y, p }]; u.tg = -1; return "Rebasing"; }
+  if (Math.hypot(P[p].x - u.x, P[p].y - u.y) > 51) return "Out of range: rebase closer first";
+  u.tg = p; return "Air strikes ordered";
+}
+
+/* ---------- simulation ---------- */
+function hitDef(q, dmg) {
+  const ds = (S.bp.get(q) || []).filter(u => u.o === S.own[q] || allied(u.o, S.own[q])), tot = S.gd[q] + ds.reduce((s, u) => s + u.n, 0); if (tot <= 0) return;
+  for (const u of ds) u.n -= dmg * u.n / tot; S.gd[q] = Math.max(0, S.gd[q] - dmg * S.gd[q] / tot); S.hq[q] = 1;
+}
+function moveUnits() {
+  for (const u of S.U) {
+    u.ox = u.x; u.oy = u.y; if (!u.path.length) continue; const w = u.path[0];
+    let en = 0; if (u.t === "l" && w.p !== undefined) { const ow = S.own[w.p]; if (ow !== u.o && !allied(u.o, ow)) { if (!atWar(u.o, ow)) { u.path = []; continue; } en = 1; } }
+    let dx = w.x - u.x; if (dx > GW / 2) dx -= GW; else if (dx < -GW / 2) dx += GW;
+    const dy = w.y - u.y, d = Math.hypot(dx, dy); if (en) { const rr = reachOf(w.p); if (d <= rr) continue; if (d - u.sp < rr) { u.x += dx / d * (d - rr); u.y += dy / d * (d - rr); continue; } }
+    if (d <= u.sp) { u.x = w.x; u.y = w.y; if (w.p !== undefined) { u.p = w.p; u.amph = 0; } u.path.shift(); } else { u.x += dx / d * u.sp; u.y += dy / d * u.sp; }
+    if (u.x < 0) { u.x += GW; u.ox = u.x; } else if (u.x >= GW) { u.x -= GW; u.ox = u.x; }
+  }
+}
+function battles() {
+  const G = {}; S.fr = [];
+  for (const u of S.U) { if (u.t !== "l" || !u.path.length) continue; const q = u.path[0].p; if (q === undefined) continue; const d = S.own[q]; if (d === u.o || allied(u.o, d) || !atWar(u.o, d) || (!u.amph && Math.hypot(u.x - P[q].x, u.y - P[q].y) > reachOf(q) + .6)) continue; (G[q + "|" + u.o] = G[q + "|" + u.o] || { q, o: u.o, d, us: [] }).us.push(u); }
+  for (const g of Object.values(G)) {
+    const A = C[g.o], B = C[g.d], q = g.q, aa = airPow(g.o, q), da = airPow(g.d, q), ab = 1 + .5 * aa / (aa + da + 2), db = 1 + .5 * da / (aa + da + 2);
+    const ds = (S.bp.get(q) || []).filter(u => u.o === g.d || allied(u.o, g.d)), as = g.us.reduce((s, u) => s + u.n, 0);
+    const ap = as * (1 + .06 * A.tech.l), dp = ds.reduce((s, u) => s + u.n, 0) + S.gd[q];
+    const dm = TM[P[q].t] * (1 + .3 * S.fort[q]) * (1 + .06 * B.tech.l) * (B.cap === q ? 1.3 : 1);
+    const dmgD = ap * .045 * ab * (.8 + rnd() * .4) / dm, dmgA = dp * .045 * db * (.8 + rnd() * .4);
+    for (const u of ds) u.n -= dmgD * u.n / dp; S.gd[q] = Math.max(0, S.gd[q] - dmgD * S.gd[q] / dp); S.hq[q] = 1;
+    for (const u of g.us) u.n -= dmgA * u.n / as;
+    const left = ds.reduce((s, u) => s + Math.max(0, u.n), 0) + S.gd[q];
+    if (left < .35) { const kk = S.cpg[q] = (S.cpg[q] || 0) + 1; if (kk >= 3 + 2 * S.fort[q]) { for (const u of ds) u.n = 0; S.cpg[q] = 0; capture(g.o, q); continue; } } else if (S.cpg[q] > 0) S.cpg[q]--;
+    if (ap < dp * .45) for (const u of g.us) if (!u.amph) u.path = [{ x: P[u.p].x, y: P[u.p].y, p: u.p }];
+    const by = {}; for (const u of g.us) if (u.n > 0) { const k = u.amph ? "x" : u.p, e = by[k] || (by[k] = { n: 0, p: u.p, x: u.x, y: u.y, am: !!u.amph }); e.n += u.n; }
+    for (const k in by) { const e = by[k]; S.fr.push({ p: e.p, q, A: Math.round(e.n), D: Math.round(left), o: g.o, d: g.d, ax: e.am ? e.x : undefined, ay: e.y }); }
+  }
+}
+function attrition() {
+  const F = S.U.filter(u => u.t === "n"), A = S.U.filter(u => u.t === "a"), dm = new Map();
+  const duel = (L, r, f) => { for (const u of L) for (const v of L) if (u !== v && atWar(u.o, v.o) && Math.hypot(u.x - v.x, u.y - v.y) < r) dm.set(u, (dm.get(u) || 0) + v.n * (1 + .06 * C[v.o].tech[f])); };
+  duel(F, 15, "v"); duel(A, 24, "a");
+  for (const [u, e] of dm) u.n -= e * .05 * (.8 + rnd() * .4) / (1 + .06 * C[u.o].tech[u.t === "n" ? "v" : "a"]);
+  for (const u of F) if (u.tg >= 0 && !u.path.length) { const o = S.own[u.tg]; if (atWar(u.o, o)) { hitDef(u.tg, u.n * (1 + .06 * C[u.o].tech.v) * .05); C[o].blk++; } else u.tg = -1; }
+  for (const u of A) if (u.tg >= 0 && !u.path.length) { const o = S.own[u.tg]; if (atWar(u.o, o) && Math.hypot(P[u.tg].x - u.x, P[u.tg].y - u.y) <= 51) hitDef(u.tg, u.n * (1 + .06 * C[u.o].tech.a) * .06); else if (!atWar(u.o, o)) u.tg = -1; }
+}
+function tick() {
+  S.day++; lastT = performance.now(); const d = new Date(DAY0 + S.day * 864e5); sums(); idx(); S.hq.fill(0);
+  for (const c of C) {
+    if (!c.alive) continue;
+    const war = S.enm[c.id].size, r = rev(c), dc = dcost(c);
+    c.gold += r * (1 - .25 * c.div / c.div0);
+    if (c.master >= 0) { if (C[c.master].alive) { const t = r * .3; c.gold -= t; C[c.master].gold += t; } else c.master = -1; }
+    c.gdp *= 1 + (.022 + .004 * c.tech.i + (c.stab - 50) / 5000 - (war ? .012 : 0) - (c.tax > .35 ? .01 : 0)) / 365;
+    c.pop *= 1 + (.008 + .001 * c.tech.m) / 365;
+    if (c.gold > dc * 4 && c.div < c.pop * .8) { const add = c.mil * .04 * (1 + .05 * c.tech.i) * (c.we ? 1.3 : 1) * (war ? 1.2 : 1); c.rc += add; c.gold -= add * dc; if (c.rc >= 1) { const k = Math.floor(c.rc); c.rc -= k; addUnit(c, "l", k, c.cap); } }
+    c.prog += Math.sqrt(c.gdp) * .12 * (1 + .1 * c.tech.e);
+    if (c.res && c.prog >= techCost(c)) { c.prog -= techCost(c); c.tech[c.res]++; if (c.id === S.me) toast(`Research complete: ${TECH[c.res]} ${c.tech[c.res]}`); c.res = ""; }
+    for (const j of c.q) j.l--;
+    c.q = c.q.filter(j => { if (j.l > 0) return true; if (j.k === "civ") { c.civ++; c.gdp *= 1.006; } else if (j.k === "mil") c.mil++; else if (j.k === "nav") addUnit(c, "n", 2, port(c)); else if (j.k === "air") addUnit(c, "a", 2, c.cap); else S.fort[j.p] = Math.min(3, S.fort[j.p] + 1); if (c.id === S.me) toast("Construction finished"); return false; });
+    const infl = 2 + Math.max(0, -c.gold / c.gdp * 100), tgt = 62 - (c.tax - .25) * 90 - war * 5 - (infl - 3) * .6 - (c.we ? 5 : 0) + c.tech.m * 1.5 - (c.gold < 0 ? 8 : 0);
+    c.stab = Math.max(0, Math.min(100, c.stab + (tgt - c.stab) * .02));
+    if (c.stab < 12) { c.gov = "Military dictatorship"; c.stab = 40; say(`A military coup seizes power in ${nm(c)}`); if (c.id === S.me) toast("Military coup!"); }
+    if (c.id !== S.me && (S.day + c.id) % 2 === 0 && c.alive) aiOrders(c);
+    if (c.id !== S.me && (S.day + c.id) % 30 === 0) aiMonth(c);
+  }
+  for (const w of S.wars) { const h = (L, x) => (L || []).filter(e => S.own[e.p] === x).length; w.s = Math.max(-100, Math.min(100, w.s + (h(w.ta, w.a) - h(w.tb, w.b)) * .03)); }
+  if (S.day % 15 === 0) for (const w of [...S.wars]) warEnd(w);
+  moveUnits(); idx(); battles(); attrition();
+  S.U = S.U.filter(u => u.n >= .25);
+  for (let p = 0; p < P.length; p++) if (!S.hq[p]) { const m = gmax(p); if (S.gd[p] < m) S.gd[p] = Math.min(m, S.gd[p] + m * .05); }
+  if (d.getUTCDate() === 1 && d.getUTCMonth() === 0 && d.getUTCFullYear() % 4 === 0) { for (const c of C) if (c.alive && /Democracy|Republic|Constitutional/.test(c.gov)) c.stab += c.tax < .3 ? 4 : -5; say("Elections were held across the democratic world"); }
+  if (S.me >= 0 && C[S.me].alive && S.day % 150 === 0 && rnd() < .5 && !S.ev) openEvent();
+  if (S.me >= 0 && C[S.me].alive && S.day % 30 === 0 && !S.won && S.owned[S.me].size > P.length * .5) { S.won = true; S.over = { t: "World domination", s: `${C[S.me].name} controls more than half of the world.`, cont: 1 }; }
+  if (S.day % 5 === 0 && S.mode !== "pol" && S.mode !== "ter") dirty = true;
+  if (S.ev || S.over) S.paused = true;
+}
+function aiOrders(c) {
+  if (!S.enm[c.id].size || c.cap < 0) return;
+  let best = -1, bs = 1e9, front = -1;
+  for (const p of S.owned[c.id]) for (const q of adj[p]) if (S.enm[c.id].has(S.own[q])) {
+    const k = adj[q].filter(z => S.own[z] === c.id).length, s = defAt(q) / (1 + .6 * k) / (P[q].c === c.id ? 2.5 : 1);   /* prefers provinces we already border on several sides = clean frontline */
+    if (s < bs) { bs = s; best = q; front = p; }
+  }
+  const mine = S.U.filter(u => u.o === c.id), idle = mine.filter(u => u.t === "l" && !u.path.length && u.n >= .4);
+  if (best >= 0) {
+    const need = defAt(best) * 1.15 + .3, srt = idle.map(u => [u, Math.hypot(u.x - P[best].x, u.y - P[best].y)]).sort((a, b) => a[1] - b[1]); let sum = 0; const send = [];
+    for (const [u] of srt) { send.push(u); sum += u.n; if (sum > need * 1.5) break; }
+    if (sum >= need) for (const u of send) { const r = route(c.id, u.p, best); if (r) u.path = r; }
+    else for (const [u] of srt) if (u.p !== front) { const r = route(c.id, u.p, front); if (r) u.path = r; }   /* mass at the front instead of sitting idle */
+  } else if (idle.length) {
+    /* no land border with the enemy: invade by sea */
+    const ports = [...S.owned[c.id]].filter(p => P[p].pt); let T = -1, bd = 1e9;
+    for (const e of S.enm[c.id]) for (const p of S.owned[e]) if (P[p].pt) { const d = Math.hypot(P[p].x - P[c.cap].x, P[p].y - P[c.cap].y) + defAt(p) * 5; if (d < bd) { bd = d; T = p; } }
+    if (T >= 0 && ports.length) {
+      const B = ports.reduce((a, p) => Math.hypot(P[p].x - P[T].x, P[p].y - P[T].y) < Math.hypot(P[a].x - P[T].x, P[a].y - P[T].y) ? p : a, ports[0]);
+      const at = idle.filter(u => u.p === B), sum = at.reduce((s, u) => s + u.n, 0);
+      if (sum >= Math.max(2, defAt(T) * 1.3)) for (const u of at) orderTo(u, P[T].x, P[T].y);
+      else for (const u of idle) if (u.p !== B) { const r = route(c.id, u.p, B); if (r) u.path = r; }
+    }
+  }
+  for (const u of mine) {
+    if (u.t === "n" && !u.path.length && u.tg < 0) {
+      let b = -1, bd = 1e9; for (const e of S.enm[c.id]) for (const p of S.owned[e]) if (P[p].pt) { const d = Math.hypot(P[p].x - u.x, P[p].y - u.y); if (d < bd) { bd = d; b = p; } }
+      if (b >= 0 && u.n >= 1) { u.tg = b; if (!sail(u, P[b].pt)) u.tg = -1; }
+    } else if (u.t === "a" && u.tg < 0 && !u.path.length) {
+      let b = -1, bd = 51; for (const e of S.enm[c.id]) for (const p of S.owned[e]) { const d = Math.hypot(P[p].x - u.x, P[p].y - u.y); if (d < bd) { bd = d; b = p; } }
+      if (b >= 0) u.tg = b; else if (front >= 0 && u.p !== front) u.path = [{ x: P[front].x, y: P[front].y, p: front }];
+    }
+  }
+}
+function aiMonth(c) {
+  if (c.q.length < 3 + (c.civ / 8 | 0) && c.gold > rev(c) * 90) build(c.id, c.civ <= c.mil * 1.3 ? "civ" : rnd() < .5 ? "mil" : rnd() < .5 ? "nav" : "air");
+  if (!c.res) { const k = Object.keys(TECH); c.res = k[rnd() * k.length | 0]; }
+  const nb = new Set(); for (const p of S.owned[c.id]) for (const q of adj[p]) { const o = S.own[q]; if (o !== c.id) nb.add(o); }
+  if (S.enm[c.id].size < 1 + Math.ceil(S.diff) && c.stab > 25 && S.day > (S.diff > 2 ? 5 : 20)) {
+    let best = -1, bs = 0; const thr = Math.max(.5, 1.6 / Math.sqrt(S.diff));
+    for (const n of nb) { const N = C[n]; if (!N.alive || allied(c.id, n) || atWar(c.id, n) || (N.tech.n >= 5 && S.diff < 3)) continue; const r = pw(c) / (pw(N) + .5); if (r > thr) { const s = r * (1 - rel(c.id, n) / 200); if (s > bs) { bs = s; best = n; } } }
+    if (best >= 0 && rnd() < Math.min(.9, .02 * S.diff * c.aggr * (S.enm[c.id].size ? .5 : 1) * Math.min(3, Math.max(1, bs / 2)))) declare(c.id, best);
+  }
+  if (rnd() < .06) { const l = [...nb].filter(n => C[n].alive && n !== S.me && !allied(c.id, n) && !atWar(c.id, n) && rel(c.id, n) > 20); if (l.length) ally(c.id, l[rnd() * l.length | 0]); }
+}
+const EVS = [
+  ["Border incident", "Troops exchanged fire along your frontier.", [["Send a protest note", c => { c.stab += 2; }], ["Mobilize reserves", c => { c.gold -= rev(c) * 10; addUnit(c, "l", 2, c.cap); c.stab -= 1; }]]],
+  ["Economic downturn", "Markets are shaky and unemployment is climbing.", [["Fund a stimulus package", c => { c.gold -= rev(c) * 25; c.gdp *= 1.01; }], ["Cut public spending", c => { c.gold += rev(c) * 15; c.stab -= 4; }]]],
+  ["Factory strikes", "Workers in the industrial heartland walk out.", [["Meet their demands", c => { c.gold -= rev(c) * 12; c.stab += 3; }], ["Break the strike", c => { c.stab -= 5; c.gdp *= 1.003; }]]],
+  ["Scientific breakthrough", "Your institutes ask for extra funding.", [["Fund the project", c => { c.gold -= rev(c) * 20; c.prog += 60 + Math.sqrt(c.gdp) * 3; }], ["Decline", () => { }]]],
+  ["Separatist demands", "A province wants more autonomy.", [["Grant autonomy", c => { c.stab += 4; c.gdp *= .995; }], ["Suppress the movement", c => { c.stab -= 5; }]]]
+];
+function openEvent() { const e = EVS[rnd() * EVS.length | 0], c = C[S.me]; openEv(e[0], e[1], e[2].map(o => [o[0], () => o[1](c)])); }
+function openEv(t, d, o) { S.ev = { t, d, o: o.map(x => x[0]) }; evAct = o.map(x => x[1]); S.paused = true; hud(); }
+
+/* ---------- map painting ---------- */
+const TC32 = TC.map(h => (255 << 24 | parseInt(h.slice(5, 7), 16) << 16 | parseInt(h.slice(3, 5), 16) << 8 | parseInt(h.slice(1, 3), 16)) >>> 0);
+function hsl32(h, s, l) { s /= 100; l /= 100; const a = s * Math.min(l, 1 - l), f = n => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); }; return (255 << 24 | (f(8) * 255 + .5 | 0) << 16 | (f(4) * 255 + .5 | 0) << 8 | (f(0) * 255 + .5 | 0)) >>> 0; }
+const shade = (c, f) => (255 << 24 | ((c >> 16 & 255) * f | 0) << 16 | ((c >> 8 & 255) * f | 0) << 8 | ((c & 255) * f | 0)) >>> 0;
+function col32(p) {
+  const o = S.own[p], c = C[o], m = S.mode, q = P[p];
+  if (m === "ter") return TC32[q.t];
+  if (m === "pop") return hsl32(28, 85, 10 + 55 * Math.sqrt(Math.min(1, q.pop / 40)));
+  if (m === "dip" && S.me >= 0) { if (o === S.me) return 0xfff6823b; if (atWar(S.me, o)) return 0xff2626dc; if (allied(S.me, o)) return 0xffa6b814; const r = rel(S.me, o); return hsl32(r > 0 ? 120 : 0, 45, 20 + Math.abs(r) * .25); }
+  return c.c32;
+}
+/* the whole map is written into one pixel buffer; real vector borders and coastline are layered on top */
+function paint() {
+  const iw = GW * SC, ih = GH * SC;
+  if (!img) { tmpCv = document.createElement("canvas"); tmpCv.width = iw; tmpCv.height = ih; img = tmpCv.getContext("2d").createImageData(iw, ih); i32 = new Uint32Array(img.data.buffer); }
+  i32.fill(0); const cl = new Uint32Array(P.length), dk = new Uint32Array(P.length);
+  for (let p = 0; p < P.length; p++) { cl[p] = col32(p); dk[p] = shade(cl[p], .8); }
+  for (let p = 0; p < P.length; p++) { const c = cl[p], L = P[p].cells; for (let j = 0; j < L.length; j++) { const i = L[j], b = (i / GW | 0) * 2 * iw + i % GW * 2; i32[b] = c; i32[b + 1] = c; i32[b + iw] = c; i32[b + iw + 1] = c; } }
+  const OB = 0xe6100805;
+  for (let p = 0; p < P.length; p++) { const L = P[p].cells, op = S.own[p], cp = P[p].c; for (let j = 0; j < L.length; j++) {
+    const i = L[j], x = i % GW, y = i / GW | 0, b = y * 2 * iw + x * 2;
+    let q = x < GW - 1 ? pid[i + 1] : -1;
+    if (q >= 0 && q !== p && (S.own[q] === op || P[q].c === cp)) { const c = S.own[q] !== op ? OB : dk[p]; i32[b + 1] = c; i32[b + iw + 1] = c; }
+    q = y < GH - 1 ? pid[i + GW] : -1;
+    if (q >= 0 && q !== p && (S.own[q] === op || P[q].c === cp)) { const c = S.own[q] !== op ? OB : dk[p], o = b + iw; i32[o] = c; i32[o + 1] = c; }
+  } }
+  const t = tmpCv.getContext("2d"); t.putImageData(img, 0, 0); t.globalCompositeOperation = "destination-in"; t.drawImage(maskCv, 0, 0); t.globalCompositeOperation = "source-over";
+  const g = mapCv.getContext("2d"), og = g.createLinearGradient(0, 0, 0, ih); og.addColorStop(0, "#0e2340"); og.addColorStop(.5, "#0a1a30"); og.addColorStop(1, "#081322"); g.fillStyle = og; g.fillRect(0, 0, iw, ih); g.drawImage(tmpCv, 0, 0);
+  /* borders: only segments whose two sides have different owners (so a conquered land's old border disappears), drawn as smooth vectors */
+  { const sg = W.seg, pa = new Path2D(), own = S.own; let lx = -1, ly = -1;
+    for (let i = 0; i < sg.length; i += 6) { const a = sg[i + 4], b = sg[i + 5]; if (a >= 0 && b >= 0 && own[a] === own[b] && P[a].c !== P[b].c) continue; if (sg[i] !== lx || sg[i + 1] !== ly) pa.moveTo(sg[i], sg[i + 1]); pa.lineTo(sg[i + 2], sg[i + 3]); lx = sg[i + 2]; ly = sg[i + 3]; }
+    S.bd = pa; const bg = brdCv.getContext("2d"); bg.setTransform(1, 0, 0, 1, 0, 0); bg.clearRect(0, 0, iw, ih); bg.setTransform(SC, 0, 0, SC, 0, 0); bg.lineJoin = bg.lineCap = "round"; bg.lineWidth = 1.7 / SC; bg.strokeStyle = "rgba(5,8,16,.85)"; bg.stroke(pa); }
+  /* each nation's name sits on its largest connected landmass, never on a neighbour's land */
+  lab = C.filter(c => c.alive && S.owned[c.id].size).map(c => {
+    const cl = clusterOf(c); if (!cl) return null; let x = 0, y = 0; for (const p of cl.comp) { const k = P[p].cells.length; x += P[p].x * k; y += P[p].y * k; } x /= cl.n; y /= cl.n;
+    const cp = pid[(y | 0) * GW + (x | 0)];
+    if (!(cp >= 0 && S.own[cp] === c.id && cl.comp.includes(cp))) { let bd = 1e9, bx = x, by = y; for (const p of cl.comp) { const d = (P[p].x - x) ** 2 + (P[p].y - y) ** 2; if (d < bd) { bd = d; bx = P[p].x; by = P[p].y; } } x = bx; y = by; }
+    return { n: c.name, x, y, s: Math.sqrt(cl.n), me: c.id === S.me };
+  }).filter(Boolean);
+  lv++; dirty = false; lastPaint = performance.now();
+}
+const pathOf = cells => { const pa = new Path2D(); for (const i of cells) pa.rect(i % GW, i / GW | 0, 1, 1); return pa; };
+const ppath = p => P[p].pa || (P[p].pa = pathOf(P[p].cells));
+function hlBuild() {
+  hl.p = S.sel >= 0 ? ppath(S.sel) : null;
+  const o = S.sel >= 0 ? S.own[S.sel] : S.pick; hl.c = 0;
+  if (!hlCv) { hlCv = document.createElement("canvas"); hlCv.width = GW * SC; hlCv.height = GH * SC; }
+  const g = hlCv.getContext("2d"); g.clearRect(0, 0, hlCv.width, hlCv.height);
+  if (o >= 0 && C[o] && C[o].alive) { g.fillStyle = "rgba(255,255,255,.13)"; for (const p of S.owned[o]) for (const i of P[p].cells) g.fillRect(i % GW * SC, (i / GW | 0) * SC, SC, SC); hl.c = 1; }
+}
+function mapView() { if (!st) return; const w = st.clientWidth, h = st.clientHeight, k = Math.min(w / GW, h / GH); view = { k, x: (w - GW * k) / 2, y: (h - GH * k) / 2 }; moved = false; }
+/* largest connected landmass of a nation's provinces */
+function clusterOf(c) {
+  const set = S.owned[c.id]; if (!set || !set.size) return null; const seen = new Set(); let best = null;
+  for (const s0 of set) {
+    if (seen.has(s0)) continue; const comp = [s0]; let n = 0; seen.add(s0);
+    for (let h = 0; h < comp.length; h++) { const p = comp[h]; n += P[p].cells.length; for (const y of adj[p]) if (!seen.has(y) && S.own[y] === c.id) { seen.add(y); comp.push(y); } }
+    if (!best || n > best.n) best = { comp, n };
+  }
+  return best;
+}
+/* centre (and zoom) the view on a nation, in the part of the screen the side panel does not cover */
+function focusOn(c) {
+  const cl = c && c.alive ? clusterOf(c) : null; if (!cl || !st) return mapView();
+  let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  for (const p of cl.comp) for (const i of P[p].cells) { const x = i % GW, y = i / GW | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const w = st.clientWidth, h = st.clientHeight, wide = w > 820, aw = wide ? Math.max(260, w - 370) : w, ah = wide ? h : h * .52, base = Math.min(w / GW, h / GH), bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+  let k = Math.min(aw * .6 / bw, ah * .6 / bh);
+  if (k < base * 1.25) { k = base; view = { k, x: (aw - GW * k) / 2, y: (ah - GH * k) / 2 }; }
+  else { k = Math.min(7, k); view = { k, x: aw / 2 - (x0 + bw / 2) * k, y: ah / 2 - (y0 + bh / 2) * k }; }
+  moved = false;
+}
+const recenter = () => { zt = null; if (S.phase === "play" && S.me >= 0 && C[S.me].alive) focusOn(C[S.me]); else mapView(); };
+function req() { if (!raf) raf = requestAnimationFrame(frame); }
+const tag = (x, y, t, c) => { const w = ctx.measureText(t).width + 10; ctx.fillStyle = "rgba(8,12,20,.94)"; ctx.fillRect(x - w / 2, y - 8, w, 16); ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.strokeRect(x - w / 2, y - 8, w, 16); ctx.fillStyle = "#fff"; ctx.fillText(t, x, y + .5); };
+const line = (a, b, c, d) => { ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.stroke(); };
+/* real national flags, all preloaded when the world opens; banners are cached as small sprites */
+function flagImg(o) {
+  if (FI[o] !== undefined) return FI[o];
+  FI[o] = null; const code = C[o].fc; if (!code) return null;
+  const srcs = FSRC(code); if (!srcs.length) return null; let n = 0; const im = new Image();
+  im.onload = () => { FI[o] = im; for (const k of [...SPR.keys()]) if (k.startsWith(o + "|")) SPR.delete(k); req(); };
+  im.onerror = () => { if (++n < srcs.length) im.src = srcs[n]; };
+  im.src = srcs[0]; return null;
+}
+const mctx = document.createElement("canvas").getContext("2d");
+function sprite(u, sel) {
+  const c = C[u.o], lb = u.n < 10 ? u.n.toFixed(1) : "" + Math.round(u.n), im = flagImg(u.o), k = u.o + "|" + u.t + "|" + lb + "|" + (sel ? 1 : 0) + "|" + (im ? 1 : 0); let s = SPR.get(k); if (s) return s;
+  if (SPR.size > 900) SPR.clear();
+  mctx.font = "700 10px Arial"; const tw = mctx.measureText(lb).width, pw = 15 + tw + 4, fw = 22, w = pw + fw, h = 16, d = Math.min(2, devicePixelRatio || 1), cvs = document.createElement("canvas");
+  cvs.width = Math.ceil(w * d); cvs.height = Math.ceil(h * d); const g = cvs.getContext("2d"); g.scale(d, d);
+  g.fillStyle = "#151b27"; g.fillRect(0, 0, pw, h); g.font = "700 10px Arial"; g.textBaseline = "middle"; g.textAlign = "left";
+  g.fillStyle = c.hex; g.fillText(u.t === "n" ? "⚓" : u.t === "a" ? "✈" : "⚔", 2, h / 2 + .5); g.fillStyle = "#fff"; g.fillText(lb, 15, h / 2 + .5);
+  if (im) g.drawImage(im, pw, 0, fw, h); else { const pt = PAT[c.fc]; if (pt) { const [dr, ...cs] = pt.split(" "), n = cs.length; cs.forEach((cc, i) => { g.fillStyle = "#" + cc; if (dr === "v") g.fillRect(pw + fw * i / n, 0, fw / n + .5, h); else g.fillRect(pw, h * i / n, fw, h / n + .5); }); } else { g.fillStyle = c.col; g.fillRect(pw, 0, fw, h); } }
+  g.strokeStyle = "rgba(0,0,0,.9)"; g.lineWidth = 1; g.strokeRect(pw + .5, .5, fw - 1, h - 1);
+  g.strokeStyle = sel ? "#ffe08a" : "#0b0f16"; g.lineWidth = sel ? 2 : 1.5; g.strokeRect(.75, .75, w - 1.5, h - 1.5);
+  s = { cv: cvs, w, h }; SPR.set(k, s); return s;
+}
+function flag(g, sx, sy, sel, sc) { const s = sprite(g, sel), w = s.w * sc, h = s.h * sc; ctx.globalAlpha = sel ? 1 : .94; ctx.drawImage(s.cv, sx, sy - h, w, h); ctx.globalAlpha = 1; S.hit.push({ u: g.u, x: sx, y: sy - h, w, h }); }
+/* unit visibility: mode 0 = everything, 1 = only your forces, allies and units of nations at war with you, 2 = hidden (selected unit always shows) */
+const unitVisible = u => u.id === S.un || (S.uv === 0 || (S.uv === 1 && (S.me < 0 || u.o === S.me || atWar(S.me, u.o) || allied(S.me, u.o))));
+function drawUnits() {
+  const k = view.k, X = x => x * k + view.x, Y = y => y * k + view.y, fr = S.paused || S.phase !== "play" ? 1 : Math.min(1, (performance.now() - lastT) / tickMs);
+  S.hit = []; const sel = S.un ? S.U.find(u => u.id === S.un) : null;
+  ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  if (sel) {
+    ctx.setLineDash([6, 5]); ctx.lineWidth = 2; let px = X(sel.x), py = Y(sel.y);
+    for (const w of sel.path) { const en = w.p !== undefined && S.own[w.p] !== sel.o && !allied(sel.o, S.own[w.p]); ctx.strokeStyle = en ? "#ff6a58" : "#7ee08a"; line(px, py, X(w.x), Y(w.y)); px = X(w.x); py = Y(w.y); }
+    if (sel.tg >= 0 && sel.t === "a") { ctx.strokeStyle = "#ffb347"; line(X(sel.x), Y(sel.y), X(P[sel.tg].x), Y(P[sel.tg].y)); }
+    ctx.setLineDash([]);
+  }
+  ctx.font = "700 11px Arial";
+  for (const f of S.fr) {
+    const a = P[f.p], b = P[f.q], ax = X(f.ax !== undefined ? f.ax : a.x), ay = Y(f.ax !== undefined ? f.ay : a.y), bx = X(b.x), by = Y(b.y), dx = bx - ax, dy = by - ay, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d, nx = -uy, ny = ux, mx = ax + dx * .62, my = ay + dy * .62, off = Math.max(20, d * .26), col = C[f.o].hex;
+    /* thick attack arrow */
+    const sx = ax + ux * 12, sy = ay + uy * 12, ex = mx - ux * 3, ey = my - uy * 3, hl2 = 15, len = Math.hypot(ex - sx, ey - sy);
+    if (len > hl2 + 6) {
+      const bx2 = ex - ux * hl2, by2 = ey - uy * hl2, hw = 5; ctx.beginPath(); ctx.moveTo(sx + nx * hw, sy + ny * hw); ctx.lineTo(bx2 + nx * hw, by2 + ny * hw); ctx.lineTo(bx2 + nx * (hw + 5), by2 + ny * (hw + 5)); ctx.lineTo(ex, ey); ctx.lineTo(bx2 - nx * (hw + 5), by2 - ny * (hw + 5)); ctx.lineTo(bx2 - nx * hw, by2 - ny * hw); ctx.lineTo(sx - nx * hw, sy - ny * hw); ctx.closePath();
+      ctx.globalAlpha = .82; ctx.fillStyle = col; ctx.fill(); ctx.globalAlpha = 1; ctx.strokeStyle = "rgba(5,8,16,.85)"; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+    /* front line with comb ticks toward the enemy */
+    const L = Math.min(90, Math.max(34, d * .85)), n = Math.max(3, L / 8 | 0); ctx.beginPath();
+    ctx.moveTo(mx - nx * L / 2, my - ny * L / 2); ctx.lineTo(mx + nx * L / 2, my + ny * L / 2);
+    for (let i = 0; i <= n; i++) { const t = (i / n - .5) * L, px = mx + nx * t, py = my + ny * t; ctx.moveTo(px, py); ctx.lineTo(px + ux * 6, py + uy * 6); }
+    ctx.strokeStyle = "rgba(5,8,16,.9)"; ctx.lineWidth = 5.5; ctx.stroke(); ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.stroke();
+    tag(ax + ux * Math.min(off, d * .4), ay + uy * Math.min(off, d * .4), "" + f.A, col); tag(mx + ux * 22, my + uy * 22, "" + f.D, C[f.d].hex);
+  }
+  /* banners: units of the same nation and type that sit close together on screen are merged into ONE banner with the combined strength, banners shrink when zoomed out, and the "Units" button (or U key) filters or hides them */
+  if (S.uv === 2 && !sel) return;
+  const min = 30 / Math.pow(k, 1.5), cw = cv.clientWidth, ch = cv.clientHeight, sc = Math.max(.55, Math.min(.95, .4 + k * .13)), cs = Math.max(46, 130 - k * 25), gm = new Map();
+  for (const u of S.U) {
+    if (!unitVisible(u)) continue;
+    const x = u.ox + (u.x - u.ox) * fr, y = u.oy + (u.y - u.oy) * fr, sx = X(x), sy = Y(y); if (sx < -80 || sy < -40 || sx > cw + 60 || sy > ch + 60) continue;
+    const gk = u.id === S.un ? "s" + u.id : u.o + "|" + u.t + "|" + (sx / cs | 0) + "," + (sy / (cs * .5) | 0); let g = gm.get(gk);
+    if (!g) gm.set(gk, g = { o: u.o, t: u.t, n: 0, u, sx: 0, sy: 0, sel: u.id === S.un });
+    g.n += u.n; g.sx += sx * u.n; g.sy += sy * u.n; if (u.n > g.u.n) g.u = u;
+  }
+  const gs = [...gm.values()].filter(g => g.sel || g.o === S.me || g.n >= min).sort((a, b) => (a.sel - b.sel) || (b.n - a.n)), stk = new Map();
+  for (const g of gs) {
+    const sx = g.sx / g.n, sy = g.sy / g.n, ck = (sx / 52 | 0) + "," + (sy / 26 | 0), i = stk.get(ck) || 0; stk.set(ck, i + 1); if (i > 2 && !g.sel) continue;
+    flag(g, sx - 12 * sc, sy + (g.t === "n" ? 8 : 0) - i * 16 * sc, g.sel, sc);
+  }
+}
+function frame() {
+  raf = 0; if (!root || !mapCv) return;
+  if (zt) { view.x += (zt.x - view.x) * .22; view.y += (zt.y - view.y) * .22; view.k += (zt.k - view.k) * .22; if (Math.abs(zt.k - view.k) < view.k * .002 && Math.abs(zt.x - view.x) < .5 && Math.abs(zt.y - view.y) < .5) { view = { ...zt }; zt = null; } else raf = requestAnimationFrame(frame); }
+  const now = performance.now(), play = S.phase === "play" && !S.paused;
+  if (play && now - lastFr < 30) { raf = requestAnimationFrame(frame); return; } lastFr = now;
+  if (dirty) { if (now - lastPaint > 200) paint(); else setTimeout(req, 210); }
+  const dpr = devicePixelRatio || 1, w = st.clientWidth, h = st.clientHeight, k = view.k;
+  if (cv.width !== (w * dpr | 0) || cv.height !== (h * dpr | 0)) { cv.width = w * dpr; cv.height = h * dpr; }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = "#08111e"; ctx.fillRect(0, 0, w, h);
+  const x0 = Math.max(0, Math.floor(-view.x / k)), y0 = Math.max(0, Math.floor(-view.y / k)), x1 = Math.min(GW, Math.ceil((w - view.x) / k)), y1 = Math.min(GH, Math.ceil((h - view.y) / k));
+  if (x1 > x0 && y1 > y0) {
+    const dx = view.x + x0 * k, dy = view.y + y0 * k, dw = (x1 - x0) * k, dh = (y1 - y0) * k;
+    ctx.drawImage(mapCv, x0 * SC, y0 * SC, (x1 - x0) * SC, (y1 - y0) * SC, dx, dy, dw, dh);
+    if (hl.c && hlCv) ctx.drawImage(hlCv, x0 * SC, y0 * SC, (x1 - x0) * SC, (y1 - y0) * SC, dx, dy, dw, dh);
+    if (k < 4) { ctx.drawImage(brdCv, x0 * SC, y0 * SC, (x1 - x0) * SC, (y1 - y0) * SC, dx, dy, dw, dh); ctx.drawImage(lineCv, x0 * SC, y0 * SC, (x1 - x0) * SC, (y1 - y0) * SC, dx, dy, dw, dh); }
+  }
+  ctx.setTransform(dpr * k, 0, 0, dpr * k, dpr * view.x, dpr * view.y);
+  if (k >= 4) { ctx.lineJoin = "round"; ctx.lineWidth = 1.7 / k; ctx.strokeStyle = "rgba(5,8,16,.85)"; ctx.lineCap = "round"; ctx.stroke(S.bd || W.bord); ctx.lineWidth = 1.3 / k; ctx.strokeStyle = "rgba(200,225,255,.65)"; ctx.stroke(W.coast); }
+  if (hl.p) { ctx.fillStyle = "rgba(255,230,140,.38)"; ctx.fill(hl.p); }
+  if (hl.h) { ctx.fillStyle = "rgba(255,255,255,.2)"; ctx.fill(hl.h); }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const lk = view.x + "|" + view.y + "|" + k + "|" + w + "|" + h + "|" + lv + "|" + dpr;
+  if (lk !== labKey) {
+    labKey = lk; if (!labCv) labCv = document.createElement("canvas"); labCv.width = w * dpr | 0; labCv.height = h * dpr | 0;
+    const g = labCv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.textAlign = "center"; g.textBaseline = "middle"; g.lineJoin = "round";
+    const placed = []; for (const l of [...lab].sort((a, b) => b.s - a.s)) {
+      const fs = Math.min(26, l.s * k * .55 / Math.max(3, l.n.length * .32)); if (fs < 9) continue;
+      const x = l.x * k + view.x, y = l.y * k + view.y; if (x < -80 || y < -20 || x > w + 80 || y > h + 20) continue;
+      g.font = `700 ${fs | 0}px Arial`; const t = (l.me ? "★ " : "") + l.n.toUpperCase(); { const tw = g.measureText(t).width, bx = [x - tw / 2 - 3, y - fs / 2, x + tw / 2 + 3, y + fs / 2]; if (placed.some(p => bx[0] < p[2] && bx[2] > p[0] && bx[1] < p[3] && bx[3] > p[1])) continue; placed.push(bx); } g.lineWidth = 3.5; g.strokeStyle = "rgba(5,8,16,.8)"; g.strokeText(t, x, y); g.fillStyle = "#f4f1e6"; g.fillText(t, x, y);
+    }
+  }
+  ctx.globalAlpha = S.phase === "play" && S.hit.length > 6 ? .8 : 1; ctx.drawImage(labCv, 0, 0, w, h); ctx.globalAlpha = 1;
+  if (S.phase === "play") drawUnits();
+  if (play) req();
+}
+const cellAt = (sx, sy) => { const x = Math.floor((sx - view.x) / view.k), y = Math.floor((sy - view.y) / view.k); return x < 0 || y < 0 || x >= GW || y >= GH ? -1 : pid[y * GW + x]; };
+
+/* ---------- interface ---------- */
+function toast(t) { const el = $("kw-toast"); if (!el) return; el.textContent = t; el.classList.add("on"); clearTimeout(tipT); tipT = setTimeout(() => el.classList.remove("on"), 2600); }
+const btn = (a, l, x = "", dis = false, cls = "") => `<button class="b ${cls}" data-a="${a}" ${x} ${dis ? "disabled" : ""}>${l}</button>`;
+const st4 = a => `<div class="g4">${a.map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join("")}</div>`;
+const bar = (v, col) => `<div class="meter"><s style="width:${Math.max(0, Math.min(100, v))}%;background:${col}"></s></div>`;
+const urow = u => `<div class="row" data-a="selu" data-i="${u.id}" style="cursor:pointer">${fi(C[u.o])}<span>${UT[u.t]}<small>${P[u.p].name}${u.path.length ? " · moving" : u.tg >= 0 ? " · mission" : ""}</small></span><u>${u.n.toFixed(1)}</u></div>`;
+
+function countryCard(c) {
+  const me = S.me >= 0 ? C[S.me] : null, foreign = me && c.id !== me.id;
+  let h = `<div class="box"><div class="hd">${fi(c, "big")}<div><b>${c.name}</b><small>${c.gov}${c.id === S.me ? " · you" : ""}${c.alive ? "" : " · fallen"}${c.master >= 0 ? " · puppet of " + C[c.master].name : ""}</small></div></div>`;
+  if (!c.alive) return h + "</div>";
+  h += st4([["Population", fmtP(c.pop)], ["GDP", fmtB(c.gdp)], ["Army", Math.round(c.div)], ["Provinces", S.owned[c.id].size]]);
+  h += st4([["Navy", Math.round(c.nav)], ["Air", Math.round(c.air)], ["Stability", (c.stab | 0) + "%"], ["Allies", c.al.length]]);
+  h += `<p class="hint">Allies: ${c.al.map(x => C[x].name).join(", ") || "none"}<br>At war with: ${[...S.enm[c.id]].map(x => C[x].name).join(", ") || "none"}</p>`;
+  if (foreign) {
+    const r = rel(me.id, c.id), w = atWar(me.id, c.id), a = allied(me.id, c.id);
+    h += `<div class="lbl">Relations with you ${r > 0 ? "+" : ""}${r}</div>${bar(50 + r / 2, r > 0 ? "#5fae6b" : "#c4513f")}<div class="acts">`;
+    h += w ? btn("peace", "Request peace", `data-i="${c.id}"`) : btn("war", "Declare war", `data-i="${c.id}"`, a);
+    h += a ? btn("unally", "Leave alliance", `data-i="${c.id}"`) : btn("ally", "Propose alliance", `data-i="${c.id}"`, w);
+    h += btn("improve", `Improve relations <small>${fmtB(rev(me) * 3)}</small>`, `data-i="${c.id}"`, w || me.gold < rev(me) * 3) + "</div>";
+  }
+  return h + "</div>";
+}
+function provCard(p) {
+  const q = P[p], o = S.own[p], c = C[o], me = S.me >= 0 ? C[S.me] : null; let h = `<div class="box"><div class="sub">Province</div><div class="pn">${q.name}</div>`;
+  h += st4([["Owner", c.name.length > 9 ? c.name.slice(0, 8) + "…" : c.name], ["Population", fmtP(q.pop)], ["Terrain", TERR[q.t]], ["Garrison", S.gd[p].toFixed(1)]]);
+  h += `<p class="hint">Development ${q.dev * 100 | 0}% · Fortification level ${S.fort[p]} · ${q.res >= 0 ? "Deposit: " + RES[q.res] : "No strategic resources"}${c.cap === p ? " · Capital" : ""}${q.pt ? " · Port" : ""}</p>`;
+  if (me && me.alive && o === me.id) h += `<div class="acts">${btn("fort", `Fortify <small>${fmtB(rev(me) * 8)}</small>`, `data-i="${p}"`, S.fort[p] >= 3)}</div>`;
+  const us = S.U.filter(u => u.p === p && u.t !== "n"); if (us.length) h += `<div class="lbl">Stationed here</div>${us.map(urow).join("")}`;
+  return h + "</div>";
+}
+function unitCard(u) {
+  const mine = u.o === S.me, o = u.path.length ? u.path[0].p : -1, en = o !== undefined && o >= 0 && S.own[o] !== u.o && !allied(u.o, S.own[o]);
+  const ord = u.t === "l" ? (u.path.length ? (u.amph ? "Landing" : en ? "Attacking" : "Moving") : "Idle") : u.tg >= 0 ? (u.t === "n" ? "Blockading" : "Striking") : u.path.length ? "Underway" : "Idle";
+  const tips = { l: "Click a friendly province to move, or an enemy province (at war) to attack. Overseas targets are invaded from a port province. Armies lined up next to the same target fight together.", n: "Click open sea to sail, or an enemy coast to blockade and bombard it. Fleets fight enemy fleets nearby.", a: "Click a friendly province to rebase, or an enemy province within range to bomb it. Wings give your battles air cover." };
+  return `<div class="box"><div class="hd">${fi(C[u.o], "big")}<div><b>${UT[u.t]} · ${u.n.toFixed(1)}</b><small>${C[u.o].name}</small></div></div>${st4([["Strength", u.n.toFixed(1)], ["Orders", ord], ["Location", P[u.p].name.slice(0, 11)], ["Speed", u.sp]])}${mine ? `<div class="acts">${u.t === "l" ? btn("split", "Split half", "", u.n < 2) : ""}${btn("halt", "Halt")}${btn("desel", "Deselect")}</div><p class="hint">${tips[u.t]}</p>` : `<div class="acts">${btn("desel", "Deselect")}</div>`}</div>`;
+}
+function panelHtml() {
+  const me = S.me >= 0 ? C[S.me] : null, tab = S.tab; let h = "";
+  if (tab === "sb" && !me) h += sbHtml();
+  else if (tab === "sel" || !me) {
+    const u = S.un && S.U.find(x => x.id === S.un); if (u) h += unitCard(u);
+    if (S.sel >= 0) h += countryCard(C[S.own[S.sel]]) + provCard(S.sel);
+    else if (!u && me) h += `<div class="box"><p class="hint">Click a province to inspect it, or a flag to select a unit. Select your army, then click a province to move or attack. Scroll to zoom, drag to pan, Esc to deselect, U to cycle unit visibility.</p></div>`;
+  } else if (tab === "eco") {
+    const rc = [0, 0, 0, 0, 0, 0]; for (const p of S.owned[me.id]) if (P[p].res >= 0) rc[P[p].res]++;
+    const cst = fmtB(rev(me) * 30);
+    h += `<div class="box"><div class="sub">Economy</div>${st4([["GDP", fmtB(me.gdp)], ["Income/day", fmtB(rev(me))], ["Net/day", fmtB(net(me))], ["Treasury", fmtB(me.gold)]])}
+      ${st4([["Inflation", (2 + Math.max(0, -me.gold / me.gdp * 100)).toFixed(1) + "%"], ["Unemployment", Math.max(2, 14 - me.stab / 8).toFixed(1) + "%"], ["Civilian fact.", me.civ], ["Military fact.", me.mil]])}
+      <div class="lbl">Tax rate <span id="kw-tx">${Math.round(me.tax * 100)}%</span></div><input type="range" data-a="tax" min="10" max="50" value="${Math.round(me.tax * 100)}">
+      <p class="hint">High taxes lower stability and growth. Enemy fleets blockading your coast cut income.</p></div>
+      <div class="box"><div class="sub">Construction (${me.q.length}/${3 + (me.civ / 8 | 0)} slots)</div><div class="acts">${btn("build", `Civilian factory <small>${cst}</small>`, 'data-v="civ"')}${btn("build", `Military factory <small>${cst}</small>`, 'data-v="mil"')}${btn("build", `Warships <small>${cst}</small>`, 'data-v="nav"')}${btn("build", `Air wing <small>${cst}</small>`, 'data-v="air"')}</div>
+      ${me.q.map(j => `<div class="row"><span>${{ civ: "Civilian factory", mil: "Military factory", nav: "Warships", air: "Air wing", fort: "Fortification" }[j.k]}</span><u>${j.l} days</u></div>`).join("")}
+      <div class="sub" style="margin-top:12px">Resource deposits owned</div><p class="hint" style="margin-top:0">${RES.map((r, i) => `${r} ${rc[i]}`).join(" · ")}</p></div>`;
+  } else if (tab === "mil") {
+    const wr = S.wars.filter(w => w.a === me.id || w.b === me.id), mu = S.U.filter(u => u.o === me.id).sort((a, b) => a.t < b.t ? -1 : a.t > b.t ? 1 : b.n - a.n);
+    if (S.day < 90) h += `<div class="box guide"><div class="sub">Getting started</div><ol><li>Press <b>▶</b> (or Space) to run time; pause any time to give orders.</li><li>Click your army's flag on the map, then click a province to move it.</li><li>Use <b>Diplomacy</b> to find a weaker neighbour, then declare war and click an enemy province next to your army to attack. For an overseas enemy, start from a port province and click an enemy coastal province.</li><li>Use <b>Mobilize</b> to raise troops and <b>Economy</b> to grow income.</li><li>Hold over half the world's provinces to win.</li></ol></div>`;
+    h += `<div class="box"><div class="sub">Armed forces</div>${st4([["Army", me.div.toFixed(1)], ["Navy", me.nav.toFixed(1)], ["Air", me.air.toFixed(1)], ["Cost/div", fmtB(dcost(me))]])}
+      <div class="lbl">Mobilize at the capital</div><div class="acts">${[5, 20].map(n => btn("mob", `+${n} <small>${fmtB(n * dcost(me) * 1.5)}</small>`, `data-v="${n}"`)).join("")}${btn("we", me.we ? "War economy: on" : "War economy: off", "", false, me.we ? "on" : "")}</div>
+      <p class="hint">New troops appear as an army at your capital. Select its flag and march it to the front.</p></div>
+      <div class="box"><div class="sub">Wars</div>${wr.length ? wr.map(w => { const o = w.a === me.id ? w.b : w.a, sc = wsc(w, me.id); return `<div class="row">${fi(C[o])}<span>${nm(C[o])}<small>${S.day - w.t} days · score ${sc > 0 ? "+" : ""}${sc.toFixed(0)} · taken ${w.a === me.id ? w.sa : w.sb}, lost ${w.a === me.id ? w.sb : w.sa}</small></span>${btn("peace", "Peace", `data-i="${o}"`)}</div>`; }).join("") : '<p class="hint">You are at peace.</p>'}</div>
+      <div class="box"><div class="sub">Your units</div>${mu.slice(0, 40).map(urow).join("") || '<p class="hint">No units.</p>'}</div>`;
+  } else if (tab === "dip") {
+    const nb = new Set(); for (const p of S.owned[me.id]) for (const q of adj[p]) if (S.own[q] !== me.id) nb.add(S.own[q]);
+    h += `<div class="box"><div class="sub">Neighbors and allies</div>${[...new Set([...nb, ...me.al])].map(o => `<div class="row" data-a="pickc" data-i="${o}" style="cursor:pointer">${fi(C[o])}<span>${C[o].name}<small>${atWar(me.id, o) ? "At war" : allied(me.id, o) ? "Ally" : "Relations " + rel(me.id, o)}</small></span><u>${Math.round(C[o].div)} div</u></div>`).join("") || '<p class="hint">No neighbors.</p>'}<p class="hint">Click a country to open its diplomacy options.</p></div>`;
+  } else if (tab === "res") {
+    h += `<div class="box"><div class="sub">Research · ${(Math.sqrt(me.gdp) * .12 * (1 + .1 * me.tech.e)).toFixed(1)} points/day</div>` + Object.keys(TECH).map(k => {
+      const on = me.res === k; return `<div class="row ${on ? "sel" : ""}" data-a="research" data-v="${k}" style="cursor:pointer"><span>${TECH[k]}<small>Level ${me.tech[k]}${on ? " · researching" : ""}</small></span>${on ? `<u>${Math.round(me.prog / techCost(me) * 100)}%</u>` : `<u>${Math.round(120 * Math.pow(me.tech[k] + 1, 1.5))} pts</u>`}</div>`;
+    }).join("") + `<p class="hint">Land: +6% combat per level. Navy: +6% fleet power. Air force: +6% air power. Industry: growth. Infrastructure: revenue. Electronics: research. Medicine: stability. Nuclear 5+: AI nations will not attack you.</p></div>`;
+  } else if (tab === "pol") {
+    h += `<div class="box"><div class="sub">Government</div><div class="pn">${me.gov}</div>${st4([["Stability", (me.stab | 0) + "%"], ["Tax", Math.round(me.tax * 100) + "%"], ["Allies", me.al.length], ["Wars", S.enm[me.id].size]])}
+      <div class="lbl">Reform government (costs 15 stability)</div><div class="acts" style="flex-direction:column">${GOVS.filter(g => g !== me.gov).map(g => btn("gov", g, `data-v="${g}"`, me.stab < 30)).join("")}</div></div>`;
+  }
+  if (tab === "sys") h = `<div class="box"><div class="sub">AI aggression</div><div class="acts">${AGG.map(a => btn("aggr", a[0], `data-v="${a[1]}"`, false, S.diff === a[1] ? "on" : "")).join("")}</div><p class="hint">Higher settings make nations pick fights more often, with weaker targets, and fight several wars at once. You can change this at any time.</p></div><div class="box"><div class="sub">Campaign</div><div class="acts">${btn("newgame", "New campaign")}${btn("exit", "Exit game")}</div></div>`;
+  return h;
+}
+function listHtml(q) {
+  return C.filter(c => c.alive && c.name.toLowerCase().includes(q)).sort((a, b) => b.gdp - a.gdp).map(c => `<div class="row ${S.pick === c.id ? "sel" : ""}" data-a="pickc" data-i="${c.id}" style="cursor:pointer">${fi(c)}<span>${c.name}<small>${c.gov}</small></span><u>${fmtB(c.gdp)}</u></div>`).join("");
+}
+function menuHtml() {
+  const pk = S.pick >= 0 ? C[S.pick] : null;
+  return `<div class="mc wide"><h2>Grand Strategy</h2><p>The modern world, January 2026. Pick a nation on the map or from the list, or watch the AI shape history.</p>
+    <input id="kw-q" class="in" placeholder="Search countries" autocomplete="off"><div id="kw-list" class="clist">${listHtml("")}</div>
+    <div class="lbl" style="text-align:left">AI aggression</div><select id="kw-diff" class="in">${AGG.map(a => `<option value="${a[1]}" ${a[1] === 1 ? "selected" : ""}>${a[0]}</option>`).join("")}</select>
+    <div class="acts" style="margin-top:6px">${btn("start", pk ? "Play as " + pk.name : "Choose a country", "", !pk, "big pri")}${btn("observe", "Observe only", "", false, "big")}</div></div>`;
+}
+function modalHtml() {
+  if (S.ev) return `<div class="mc"><h2>${S.ev.t}</h2><p>${S.ev.d}</p><div class="acts" style="flex-direction:column">${S.ev.o.map((o, i) => btn("ev", o, `data-i="${i}"`)).join("")}</div></div>`;
+  if (S.over) return `<div class="mc"><h2>${S.over.t}</h2><p>${S.over.s}</p><div class="acts">${S.over.cont ? btn("cont", "Keep playing") : btn("watch", "Keep watching")}${btn("newgame", "New campaign", "", false, "pri")}</div></div>`;
+  return S.phase === "menu" ? menuHtml() : "";
+}
+function hud() {
+  if (!root || !S) return;
+  const me = S.me >= 0 ? C[S.me] : null;
+  $("kw-who").innerHTML = me ? `${fi(me, "big")}<b>${me.name}</b>` : "";
+  $("kw-stats").innerHTML = me && me.alive ? `<span title="Treasury and net income per day">${fmtB(me.gold)} <small>${net(me) >= 0 ? "+" : ""}${fmtB(net(me))}/day</small></span><span title="Army">⚔ ${Math.round(me.div)}</span><span title="Navy">⚓ ${Math.round(me.nav)}</span><span title="Air force">✈ ${Math.round(me.air)}</span><span title="Stability">☉ ${me.stab | 0}%</span><span title="Current research">⚗ ${me.res ? TECH[me.res] : "idle"}</span><span title="Share of the world's provinces you hold. Reach 50% to win.">🌍 ${Math.round(S.owned[me.id].size / P.length * 100)}% <small>/ 50%</small></span>` : "";
+  $("kw-date").textContent = dstr();
+  root.querySelectorAll("[data-a=speed]").forEach(b => b.classList.toggle("on", +b.dataset.v === S.speed && !S.paused));
+  $("kw-p").classList.toggle("on", S.paused); $("kw-p").textContent = S.paused ? "▶" : "❚❚";
+  root.querySelectorAll("[data-a=tab]").forEach(b => b.classList.toggle("on", b.dataset.v === S.tab));
+  root.querySelectorAll("[data-a=mode]").forEach(b => b.classList.toggle("on", b.dataset.v === S.mode));
+  $("kw-sbt").style.display = S.me < 0 && S.phase === "play" ? "" : "none";
+  $("kw-uv").textContent = UVL[S.uv]; $("kw-uv").classList.toggle("on", S.uv !== 0); $("kw-uv").style.display = S.phase === "play" ? "" : "none";
+  const pn = $("kw-pn"), act = document.activeElement;
+  if (S.phase === "menu") pn.style.display = "none";
+  else { pn.style.display = "block"; if (!(act && act.type === "range" && root.contains(act))) { const ph = panelHtml(); if (pn.dataset.h !== ph) { const t = pn.scrollTop; pn.innerHTML = ph; pn.dataset.h = ph; pn.scrollTop = t; } } }
+  const m = $("kw-m"), mh = modalHtml(), typing = act && act.id === "kw-q";
+  if (m.dataset.h !== mh && !(typing && !S.ev && !S.over && S.phase === "menu")) { m.innerHTML = mh; m.dataset.h = mh; }
+  m.style.display = mh ? "flex" : "none";
+  { const lg = S.log.slice(0, 3).map(l => `<p>${l}</p>`).join(""), le = $("kw-log"); if (le.dataset.h !== lg) { le.innerHTML = lg; le.dataset.h = lg; } }
+}
+/* ---------- optional sandbox for observers ---------- */
+function sbKill(b) { C[b].alive = false; S.U = S.U.filter(u => u.o !== b); C[b].al.forEach(x => { C[x].al = C[x].al.filter(y => y !== b); }); C[b].al = []; S.wars = S.wars.filter(w => w.a !== b && w.b !== b); S.enm.forEach(e => e.delete(b)); S.enm[b].clear(); }
+function sbClick(p) {
+  const A = S.sb.a, t = S.sb.tool; if (A < 0 || !C[A]) return "Pick nation A first (select a province, then 'Pick A')";
+  if (t === "paint") { const b = S.own[p]; if (b === A) return "Already owned by " + C[A].name; C[A].alive = true; give(p, A); if (!S.owned[b].size) sbKill(b); S.un = null; hlBuild(); return P[p].name + " now belongs to " + C[A].name; }
+  if (!C[A].alive) return C[A].name + " no longer exists";
+  if (t === "army") { addUnit(C[A], "l", 10, p); return "10 divisions placed"; }
+  if (t === "fleet") { if (!P[p].pt) return "Fleets need a coastal province"; addUnit(C[A], "n", 4, p); return "Fleet placed"; }
+  if (t === "air") { addUnit(C[A], "a", 4, p); return "Air wing placed"; }
+  return "";
+}
+function sbDo(k) {
+  const A = S.sb.a, B = S.sb.b, ok = A >= 0 && C[A] && C[A].alive, two = ok && B >= 0 && C[B] && C[B].alive && A !== B;
+  if (!ok) return "Pick nation A first"; const a = C[A], b = C[B];
+  if (k === "gold") { a.gold += a.gdp * .1; return a.name + " receives funds"; }
+  if (k === "army") { addUnit(a, "l", 30, a.cap); return "30 divisions raised at " + a.name + "'s capital"; }
+  if (k === "stab") { a.stab = 90; return a.name + " is stable"; }
+  if (!two) return "Pick two different nations (A and B)";
+  if (k === "war") { delete S.tr[key(A, B)]; if (a.master === B) a.master = -1; if (b.master === A) b.master = -1; if (allied(A, B)) unally(A, B); if (atWar(A, B)) return "Already at war"; declare(A, B); return a.name + " attacks " + b.name; }
+  if (k === "peace") { if (!atWar(A, B)) return "Not at war"; peace(A, B); return "Peace"; }
+  if (k === "ally") { if (atWar(A, B)) peace(A, B); if (!allied(A, B)) { a.al.push(B); b.al.push(A); say(`${nm(a)} and ${nm(b)} formed an alliance`); } return "Alliance formed"; }
+  if (k === "unally") { if (!allied(A, B)) return "Not allied"; unally(A, B); return "Alliance ended"; }
+  if (k === "annex") { collapse(B, A); dirty = true; hlBuild(); return b.name + " annexed by " + a.name; }
+  return "";
+}
+function sbHtml() {
+  const sb = S.sb, n = i => i >= 0 && C[i] ? `${fi(C[i])}<b style="color:${C[i].hex}">${C[i].name}</b>` : "<small>none</small>";
+  let h = `<div class="box"><div class="sub">Sandbox (optional)</div><p class="hint" style="margin-top:0">Reshape the world while you watch: start wars, form alliances, move borders and drop armies in.</p><div class="acts">${btn("sbon", sb.on ? "Sandbox tools: on" : "Sandbox tools: off", "", false, sb.on ? "on" : "")}</div></div>`;
+  if (!sb.on) return h;
+  h += `<div class="box"><div class="sub">Nations</div><div class="row">${n(sb.a)}<span></span>${btn("sbA", "Pick A", "", S.sel < 0)}</div><div class="row">${n(sb.b)}<span></span>${btn("sbB", "Pick B", "", S.sel < 0)}</div><p class="hint">Click a province on the map, then press Pick A or Pick B.</p></div>
+  <div class="box"><div class="sub">Click tool (applies to nation A)</div><div class="acts">${[["none", "Inspect"], ["paint", "Give land"], ["army", "Place army"], ["fleet", "Place fleet"], ["air", "Place air wing"]].map(([k, l]) => btn("sbtool", l, `data-v="${k}"`, false, sb.tool === k ? "on" : "")).join("")}</div></div>
+  <div class="box"><div class="sub">Actions</div><div class="acts">${[["war", "A attacks B"], ["peace", "A and B make peace"], ["ally", "A and B ally"], ["unally", "End alliance"], ["annex", "A annexes B"], ["army", "A: +30 divisions"], ["gold", "A: +funds"], ["stab", "A: stable"]].map(([k, l]) => btn("sbdo", l, `data-v="${k}"`)).join("")}</div></div>`;
+  return h;
+}
+function pause() { if (S.phase === "play" && !S.ev && !S.over) { S.paused = !S.paused; hud(); req(); } }
+function loop() { if (!root) return; tickMs = Math.max(40, 700 / S.speed); const t0 = performance.now(); if (!S.paused && S.phase === "play") { tick(); if (t0 - lastHud > 250 || S.ev || S.over) { lastHud = t0; hud(); } req(); } timer = setTimeout(loop, Math.max(0, tickMs - (performance.now() - t0))); }
+
+function act(el) {
+  const a = el.dataset.a, i = +el.dataset.i, v = el.dataset.v, me = S.me >= 0 ? C[S.me] : null, un = S.un ? S.U.find(u => u.id === S.un) : null; let r = "";
+  if (a === "tab") S.tab = v;
+  else if (a === "mode") { S.mode = v; dirty = true; }
+  else if (a === "uv") S.uv = (S.uv + 1) % 3;
+  else if (a === "aggr") { S.diff = +v; r = "AI aggression: " + AGG.find(x => x[1] === S.diff)[0]; }
+  else if (a === "sbon") { S.sb.on = !S.sb.on; if (!S.sb.on) S.sb.tool = "none"; }
+  else if (a === "sbA" || a === "sbB") { if (S.sel < 0) r = "Click a province first"; else S.sb[a === "sbA" ? "a" : "b"] = S.own[S.sel]; }
+  else if (a === "sbtool") S.sb.tool = v;
+  else if (a === "sbdo") r = sbDo(v);
+  else if (a === "speed") { S.speed = +v; if (S.phase === "play" && !S.ev && !S.over) S.paused = false; }
+  else if (a === "pause") pause();
+  else if (a === "pickc") {
+    if (S.phase === "menu") { const q = $("kw-q"), qv = q ? q.value : "", dv = $("kw-diff") ? $("kw-diff").value : "1"; S.pick = i; hlBuild(); $("kw-m").dataset.h = ""; hud(); if ($("kw-q")) { $("kw-q").value = qv; $("kw-diff").value = dv; $("kw-list").innerHTML = listHtml(qv.toLowerCase()); } }
+    else { const p = [...S.owned[i]][0]; S.sel = p === undefined ? -1 : p; S.tab = "sel"; S.un = null; hlBuild(); }
+  }
+  else if (a === "start" || a === "observe") { const d = +$("kw-diff").value || 1, pk = S.pick; newState(a === "start" ? pk : -1, d); S.phase = "play"; S.paused = a === "start"; S.tab = a === "start" ? "mil" : "sel"; if (a === "start") { S.sel = C[pk].cap; r = "Time is paused. Press ▶ to begin."; } if (a === "start") focusOn(C[pk]); hlBuild(); say("The year is 2026. The world awaits."); }
+  else if (a === "war") { if (!confirm("Declare war on " + C[i].name + "?")) return; declare(S.me, i); }
+  else if (a === "peace") r = peaceMenu(S.me, i);
+  else if (a === "ally") r = ally(S.me, i);
+  else if (a === "unally") unally(S.me, i);
+  else if (a === "improve") { me.gold -= rev(me) * 3; bump(S.me, i, 12); r = "Relations improved"; }
+  else if (a === "fort") r = build(S.me, "fort", i);
+  else if (a === "build") r = build(S.me, v);
+  else if (a === "mob") r = mobilize(S.me, +v);
+  else if (a === "we") me.we = !me.we;
+  else if (a === "research") me.res = v;
+  else if (a === "gov") { me.gov = v; me.stab -= 15; say(`${nm(me)} became a ${v}`); }
+  else if (a === "selu") { S.un = i; S.sel = -1; S.tab = "sel"; hlBuild(); }
+  else if (a === "desel") S.un = null;
+  else if (a === "halt" && un && un.o === S.me) { un.path = []; un.tg = -1; if (un.amph) { un.amph = 0; un.x = un.ox = P[un.p].x; un.y = un.oy = P[un.p].y; } }
+  else if (a === "split" && un && un.o === S.me && un.n >= 2) { const n = un.n / 2; un.n -= n; const w = mk(un.o, "l", n, un.p); w.x = w.ox = un.x; w.y = w.oy = un.y; w.path = un.path.slice(); w.amph = un.amph; }
+  else if (a === "ev") { const f = evAct[i]; S.ev = null; S.paused = false; f(); }
+  else if (a === "watch") { S.me = -1; S.over = null; S.paused = false; dirty = true; }
+  else if (a === "cont") { S.over = null; S.paused = false; }
+  else if (a === "newgame") { newState(-1, 1); S.phase = "menu"; hlBuild(); }
+  else if (a === "exit") { exit(); return; }
+  if (r) toast(r); hud(); req();
+}
+
+function exit() { clearTimeout(timer); root.remove(); root = null; document.body.style.overflow = ""; }
+async function launch() {
+  if (root) return;
+  root = document.createElement("div"); root.id = "kw";
+  root.innerHTML = `<style>
+#kw{position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;background:#0b0f16;color:#e4e1d6;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;animation:kwin .55s ease both;--br:#c8a64e}
+@keyframes kwin{from{opacity:0;clip-path:circle(0% at 50% 50%)}to{opacity:1;clip-path:circle(150% at 50% 50%)}}
+#kw *{box-sizing:border-box}
+#kw .top{display:flex;align-items:center;gap:14px;padding:8px 14px;background:linear-gradient(#1a2130,#0f141d);border-bottom:2px solid #2b3445;flex-wrap:wrap;box-shadow:0 3px 14px rgba(0,0,0,.45);z-index:3}
+#kw #kw-who{display:flex;align-items:center;gap:8px;font-size:15px;min-width:110px}
+#kw i{width:22px;height:22px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font:700 11px Arial;font-style:normal;color:#0b0f16;flex:none;border:1px solid rgba(0,0,0,.4)}
+#kw .fl{width:24px;height:16px;object-fit:cover;border-radius:2px;flex:none;border:1px solid rgba(0,0,0,.65);box-shadow:0 0 0 1px rgba(255,255,255,.12)}#kw .fl.big{width:42px;height:28px;border-radius:3px}
+#kw #kw-stats{display:flex;gap:14px;font-size:13px;color:#d8d4c4;flex-wrap:wrap}#kw #kw-stats small{color:#8f9bb0}
+#kw .sp{flex:1}#kw #kw-date{font-size:13px;color:var(--br);font-variant-numeric:tabular-nums;font-weight:700;min-width:78px}
+#kw .grp{display:flex;gap:3px;flex-wrap:wrap}
+#kw .b{font:600 12px system-ui,Arial,sans-serif;color:#e4e1d6;background:#1b2230;border:1px solid #333e54;border-radius:6px;padding:7px 10px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;justify-content:center;transition:background .15s}
+#kw .b:hover:not(:disabled){background:#27324a}#kw .b:focus-visible{outline:2px solid var(--br);outline-offset:2px}
+#kw .b:disabled{opacity:.4;cursor:not-allowed}#kw .b.on{background:#3a3220;border-color:var(--br);color:#fff}
+#kw .b small{color:#9aa6bd;font-weight:400}#kw .b.pri{background:var(--br);color:#14110a;border-color:var(--br)}#kw .b.pri:hover:not(:disabled){background:#dcba5f}
+#kw .b.big{padding:11px 18px;font-size:13px}
+#kw .stage{position:relative;flex:1;min-height:0;overflow:hidden;background:radial-gradient(ellipse at center,#0d1d33,#060c16)}
+#kw canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none}
+#kw #kw-modes{position:absolute;left:10px;bottom:10px;display:flex;gap:3px;flex-wrap:wrap;max-width:60%}
+#kw #kw-modes .b{background:rgba(15,20,29,.9);backdrop-filter:blur(4px)}#kw #kw-modes .b.on{background:#3a3220}
+#kw #kw-pn{position:absolute;right:10px;top:10px;bottom:46px;width:350px;overflow:auto;display:none;scrollbar-width:thin}
+#kw .box{background:rgba(15,20,29,.94);border:1px solid #2b3445;border-radius:9px;padding:13px;margin-bottom:10px;backdrop-filter:blur(4px);box-shadow:0 4px 14px rgba(0,0,0,.35)}
+#kw .guide{border-color:var(--br)}#kw .guide ol{margin:4px 0 0;padding-left:18px;font-size:12.5px;line-height:1.6;color:#c9c5b5}
+#kw .hd{display:flex;align-items:center;gap:10px;margin-bottom:12px}#kw .hd i{width:34px;height:34px;font-size:16px;border-radius:7px}
+#kw .hd b{font-size:17px;display:block}#kw .hd small{color:#8f9bb0;font-size:12px}
+#kw .sub{font-size:12px;color:var(--br);font-weight:700;margin-bottom:6px;letter-spacing:.03em}#kw .pn{font-size:16px;font-weight:700;margin-bottom:10px}
+#kw .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
+#kw .g4 div{background:#0b0f16;border-radius:6px;padding:7px 4px;text-align:center}#kw .g4 small{display:block;font-size:10px;color:#8f9bb0;margin-bottom:3px}#kw .g4 b{font-size:12.5px}
+#kw .lbl{font-size:11px;color:#9aa6bd;margin:10px 0 5px}
+#kw .meter{height:6px;background:#0b0f16;border-radius:9px;overflow:hidden}#kw .meter s{display:block;height:100%;border-radius:9px}
+#kw .hint{font-size:12px;color:#8f9bb0;line-height:1.55;margin:8px 0 0}
+#kw .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}#kw .acts .b{flex:1}
+#kw .row{display:flex;align-items:center;gap:9px;padding:8px 6px;border-top:1px solid #222b3b;font-size:13px;border-radius:5px}#kw .row.sel,#kw .row[data-a=pickc]:hover,#kw .row[data-a=research]:hover,#kw .row[data-a=selu]:hover{background:#1c2535}
+#kw .row span{flex:1;min-width:0}#kw .row span small{display:block;font-size:11px;color:#8f9bb0;margin-top:1px}#kw .row u{text-decoration:none;font-size:12px;color:var(--br)}
+#kw input[type=range]{width:100%;accent-color:var(--br)}
+#kw #kw-log{position:absolute;left:10px;bottom:52px;right:380px;font-size:12px;color:#c9c5b5;pointer-events:none}#kw #kw-log p{margin:0 0 2px;background:rgba(11,15,22,.75);padding:2px 8px;border-radius:4px;width:fit-content;max-width:100%}#kw #kw-log small{color:#7d879b}
+#kw #kw-tip{position:absolute;pointer-events:none;background:#0f141d;border:1px solid #333e54;border-radius:6px;padding:6px 9px;font-size:12px;display:none;z-index:5;white-space:nowrap}
+#kw #kw-toast{position:absolute;top:12px;left:50%;transform:translate(-50%,-30px);background:var(--br);color:#14110a;font-weight:700;font-size:13px;padding:9px 16px;border-radius:8px;opacity:0;transition:.25s;pointer-events:none;z-index:9}#kw #kw-toast.on{opacity:1;transform:translate(-50%,0)}
+#kw #kw-m{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,9,15,.7);backdrop-filter:blur(3px);padding:14px;z-index:7}
+#kw .mc{background:#121823;border:1px solid #3a4560;border-top:3px solid var(--br);border-radius:10px;padding:24px;max-width:430px;width:100%;max-height:100%;overflow:auto;text-align:center}#kw .mc.wide{max-width:520px}
+#kw .mc h2{margin:0 0 8px;font-size:24px;letter-spacing:.02em}#kw .mc>p{margin:0 0 14px;font-size:13px;line-height:1.6;color:#9aa6bd}
+#kw .in{width:100%;background:#0b0f16;border:1px solid #333e54;color:#e4e1d6;border-radius:6px;padding:9px 11px;font-size:13px;margin-bottom:8px}
+#kw .clist{max-height:230px;overflow:auto;text-align:left;border:1px solid #222b3b;border-radius:8px;margin-bottom:10px}#kw .clist .row:first-child{border-top:0}
+#kw .b{white-space:normal;text-align:center}
+#kw .row{min-width:0}#kw .row span{overflow:hidden;text-overflow:ellipsis}
+#kw #kw-modes{max-width:calc(100% - 380px)}
+@media(max-width:820px){#kw #kw-pn{width:auto;left:10px;top:auto;height:46%}#kw #kw-log{display:none}#kw #kw-modes{bottom:calc(46% + 14px);max-width:none}#kw .top{gap:8px}}
+@media(prefers-reduced-motion:reduce){#kw{animation:none}}
+</style>
+<div class="top"><div id="kw-who"></div><div id="kw-stats"></div><span class="sp"></span><span id="kw-date"></span>
+<span class="grp"><button class="b" id="kw-p" data-a="pause">▶</button>${SPEEDS.map(v => `<button class="b" data-a="speed" data-v="${v}">${v}x</button>`).join("")}</span>
+<span class="grp">${[["sel", "Map"], ["eco", "Economy"], ["mil", "Military"], ["dip", "Diplomacy"], ["res", "Research"], ["pol", "Politics"], ["sb", "Sandbox"], ["sys", "System"]].map(([k, l]) => `<button class="b" data-a="tab" data-v="${k}" ${k === "sb" ? 'id="kw-sbt" style="display:none"' : ""}>${l}</button>`).join("")}</span></div>
+<div class="stage" id="kw-st"><canvas id="kw-cv"></canvas><div id="kw-modes">${[["pol", "Political"], ["ter", "Terrain"], ["pop", "Population"], ["dip", "Diplomatic"]].map(([k, l]) => `<button class="b" data-a="mode" data-v="${k}">${l}</button>`).join("")}<button class="b" id="kw-uv" data-a="uv" title="Cycle unit banners: all, only key units, hidden (U key)">Units: all</button></div>
+<aside id="kw-pn"></aside><div id="kw-log"></div><div id="kw-tip"></div><div id="kw-toast"></div><div id="kw-m" style="display:flex"><div class="mc"><h2>Loading the world</h2><p id="kw-ld">Fetching national borders…</p></div></div></div>`;
+  document.body.appendChild(root); document.body.style.overflow = "hidden";
+  st = $("kw-st"); cv = $("kw-cv"); ctx = cv.getContext("2d");
+  root.addEventListener("click", e => { const el = e.target.closest("[data-a]"); if (!el || el.disabled || el.tagName === "INPUT") return; if (el.dataset.a === "exit" && !S) { exit(); return; } if (S) act(el); });
+  try { await buildWorld(); } catch (e) { $("kw-ld").textContent = "Could not load the map data. Check your connection, then close this and type the code again."; root.querySelector(".mc").insertAdjacentHTML("beforeend", btn("exit", "Close")); return; }
+  if (!root) return;
+  newState(-1, 1); S.phase = "menu"; paint(); hlBuild(); hud(); req();
+  { const ids = C.filter(c => c.alive).map(c => c.id); let qi = 0; const pump = () => { for (let j = 0; j < 12 && qi < ids.length; j++) flagImg(ids[qi++]); if (qi < ids.length && root) setTimeout(pump, 100); }; pump(); }
+  let drag = null;
+  cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); zt = null; drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, m: 0 }; cv.style.cursor = "grabbing"; });
+  cv.addEventListener("pointermove", e => {
+    const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top;
+    if (drag) { const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.m = Math.max(drag.m, Math.abs(dx) + Math.abs(dy)); if (drag.m > 5) moved = true; view.x = drag.vx + dx; view.y = drag.vy + dy; req(); return; }
+    const p = cellAt(sx, sy), tip = $("kw-tip"); if (p !== hover) { hover = p; hl.h = p >= 0 ? ppath(p) : null; req(); }
+    if (p >= 0) { tip.style.display = "block"; tip.style.left = Math.min(sx + 14, r.width - 200) + "px"; tip.style.top = sy + 14 + "px"; tip.innerHTML = `<b>${P[p].name}</b><br>${C[S.own[p]].name} · ${TERR[P[p].t]} · ${fmtP(P[p].pop)}`; } else tip.style.display = "none";
+  });
+  cv.addEventListener("pointerleave", () => { $("kw-tip").style.display = "none"; hl.h = null; hover = -1; req(); });
+  cv.addEventListener("pointerup", e => {
+    cv.style.cursor = "grab"; const m = drag ? drag.m : 9; drag = null; if (m > 5) return;
+    const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, p = cellAt(sx, sy);
+    if (S.phase === "menu") { if (p >= 0) act({ dataset: { a: "pickc", i: S.own[p] } }); return; }
+    const hit = [...S.hit].reverse().find(q => sx >= q.x && sx <= q.x + q.w && sy >= q.y && sy <= q.y + q.h);
+    if (hit) { S.un = hit.u.id; S.sel = -1; if (S.tab !== "sb") S.tab = "sel"; hlBuild(); hud(); req(); return; }
+    const u = S.un ? S.U.find(u => u.id === S.un) : null;
+    if (u && u.o === S.me) {
+      const fx = (sx - view.x) / view.k, fy = (sy - view.y) / view.k, res = orderTo(u, fx, fy);
+      if (res) { toast(res); hud(); req(); return; }
+    }
+    if (S.me < 0 && S.sb.on && S.sb.tool !== "none" && p >= 0) { const m = sbClick(p); if (m) toast(m); S.sel = p; hud(); req(); return; }
+    S.un = null; S.sel = p; if (p >= 0 && S.tab !== "sb") S.tab = "sel"; hlBuild(); hud(); req();
+  });
+  cv.addEventListener("wheel", e => { e.preventDefault(); const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, z = zt || view, f = Math.exp(-Math.max(-120, Math.min(120, e.deltaY)) * .0018), k = Math.max(Math.min(r.width / GW, r.height / GH) * .8, Math.min(40, z.k * f)); zt = { k, x: sx - (sx - z.x) * k / z.k, y: sy - (sy - z.y) * k / z.k }; moved = true; req(); }, { passive: false });
+  { const rc = () => { if (!root || !S) return; if (!moved) recenter(); req(); }; addEventListener("resize", rc); if (window.ResizeObserver) new ResizeObserver(rc).observe(st); }
+  root.addEventListener("input", e => {
+    if (e.target.id === "kw-q") $("kw-list").innerHTML = listHtml(e.target.value.toLowerCase());
+    if (e.target.dataset.a === "tax" && S.me >= 0) { C[S.me].tax = e.target.value / 100; $("kw-tx").textContent = e.target.value + "%"; }
+  });
+  loop();
+}
+})();
+</script>
+</body></html>
