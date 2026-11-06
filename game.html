@@ -302,7 +302,7 @@ function conclude(w, type, win, opt) {
   else if (type === "repar") { const L = C[lose], o = C[win], amt = Math.min(Math.max(L.gold, 0) + rev(L) * 30, rev(L) * 120); L.gold -= amt; o.gold += amt; L.stab -= 3; }
   else if (type === "annex") { for (const p of opt || []) if (S.own[p] === lose) give(p, win); C[lose].stab -= 4; if (Math.abs(w.s) >= 45) { const L2 = C[lose], o2 = C[win], amt = Math.min(Math.max(L2.gold, 0) + rev(L2) * 30, rev(L2) * 120); L2.gold -= amt; o2.gold += amt; } }
   else if (type === "puppet") { C[lose].master = win; C[lose].al = C[lose].al.filter(x => { if (atWar(win, x)) { C[x].al = C[x].al.filter(y => y !== lose); return false; } return true; }); }
-  S.tr[key(a, b)] = S.day + 365; peace(a, b); tidy(w); expel();
+  S.tr[key(a, b)] = S.day + 1000; peace(a, b); tidy(w); expel();
   say(`${nm(C[a])} and ${nm(C[b])} signed ${type === "white" ? "a white peace, restoring borders" : type === "annex" ? `a treaty: ${nm(C[win])} annexes ${(opt || []).length} province(s)` : type === "puppet" ? `a treaty: ${nm(C[lose])} becomes a puppet of ${nm(C[win])}` : type === "repar" ? `a treaty with reparations paid by ${nm(C[lose])}` : "a ceasefire along the current lines"}`);
 }
 const annexList = (w, a, budget) => { let s = 0; return held(w, a).map(p => [p, wval(p, a === w.a ? w.b : w.a) * .6]).sort((x, y) => x[1] - y[1]).filter(([, c]) => (s + c <= budget) ? (s += c, 1) : 0).map(x => x[0]); };
@@ -334,7 +334,7 @@ function peaceMenu(a, b) {
 function warEnd(w) {
   const dur = S.day - w.t; if (dur < 150) return;
   const win = w.s >= 0 ? w.a : w.b, lose = win === w.a ? w.b : w.a, s = Math.abs(w.s), L = held(w, win), human = S.me >= 0 && (w.a === S.me || w.b === S.me);
-  const terms = s >= 85 && C[lose].master < 0 && !(C[win].master >= 0) ? "puppet" : L.length && s >= 25 ? "annex" : s < 12 ? "white" : "repar", opt = terms === "annex" ? annexList(w, win, s) : null;
+  const terms = s >= 85 && C[lose].master < 0 && !(C[win].master >= 0) ? "puppet" : L.length && s >= 25 ? "annex" : s < 12 ? "white" : "repar", opt = terms === "annex" ? annexList(w, win, s * .6) : null;
   const txt = terms === "puppet" ? "become a puppet" : terms === "annex" ? "cede captured provinces" : terms === "white" ? "accept white peace" : "pay reparations";
   if (human) {
     if (S.ev || (w.nag || 0) > S.day || s < 40) return; w.nag = S.day + 60;
@@ -351,7 +351,7 @@ function capture(a, p) {
   if (w) { const v = wval(p, b); if (w.a === a) { w.sa++; w.s = Math.min(100, w.s + v); (w.ta = w.ta || []).push({ p, from: b }); } else { w.sb++; w.s = Math.max(-100, w.s - v); (w.tb = w.tb || []).push({ p, from: b }); } }
   if (B.cap === p) { const n = [...S.owned[b]][0]; B.cap = n === undefined ? -1 : n; B.stab -= 8; say(`${nm(C[a])} captured the capital of ${nm(B)}`); }
   dirty = true; req();
-  if (S.owned[b].size <= B.n0 * .25) collapse(b, a);
+  if (S.owned[b].size <= B.n0 * .12) collapse(b, a);
 }
 function collapse(b, a) {
   const B = C[b]; for (const p of [...S.owned[b]]) { S.own[p] = a; S.owned[a].add(p); if (P[p].res >= 0) S.rc[a]++; }
@@ -451,12 +451,12 @@ function tick() {
     if (c.master >= 0) { if (C[c.master].alive) { const t = r * .3; c.gold -= t; C[c.master].gold += t; } else c.master = -1; }
     c.gdp *= 1 + (.022 + .004 * c.tech.i + (c.stab - 50) / 5000 - (war ? .012 : 0) - (c.tax > .35 ? .01 : 0)) / 365;
     c.pop *= 1 + (.008 + .001 * c.tech.m) / 365;
-    if (c.gold > dc * 4 && c.div < c.pop * .8) { const add = c.mil * .04 * (1 + .05 * c.tech.i) * (c.we ? 1.3 : 1) * (war ? 1.2 : 1); c.rc += add; c.gold -= add * dc; if (c.rc >= 1) { const k = Math.floor(c.rc); c.rc -= k; addUnit(c, "l", k, c.cap); } }
+    if (c.gold > dc * 4 && c.div < c.pop * .8) { const add = c.mil * .04 / (1 + Math.max(0, S.owned[c.id].size / c.n0 - 1.5) * .5) * (1 + .05 * c.tech.i) * (c.we ? 1.3 : 1) * (war ? 1.2 : 1); c.rc += add; c.gold -= add * dc; if (c.rc >= 1) { const k = Math.floor(c.rc); c.rc -= k; addUnit(c, "l", k, c.cap); } }
     c.prog += Math.sqrt(c.gdp) * .12 * (1 + .1 * c.tech.e);
     if (c.res && c.prog >= techCost(c)) { c.prog -= techCost(c); c.tech[c.res]++; if (c.id === S.me) toast(`Research complete: ${TECH[c.res]} ${c.tech[c.res]}`); c.res = ""; }
     for (const j of c.q) j.l--;
     c.q = c.q.filter(j => { if (j.l > 0) return true; if (j.k === "civ") { c.civ++; c.gdp *= 1.006; } else if (j.k === "mil") c.mil++; else if (j.k === "nav") addUnit(c, "n", 2, port(c)); else if (j.k === "air") addUnit(c, "a", 2, c.cap); else S.fort[j.p] = Math.min(3, S.fort[j.p] + 1); if (c.id === S.me) toast("Construction finished"); return false; });
-    const infl = 2 + Math.max(0, -c.gold / c.gdp * 100), tgt = 62 - (c.tax - .25) * 90 - war * 5 - (infl - 3) * .6 - (c.we ? 5 : 0) + c.tech.m * 1.5 - (c.gold < 0 ? 8 : 0);
+    const infl = 2 + Math.max(0, -c.gold / c.gdp * 100), tgt = 62 - (c.tax - .25) * 90 - war * 5 - (infl - 3) * .6 - (c.we ? 5 : 0) + c.tech.m * 1.5 - (c.gold < 0 ? 8 : 0) - Math.max(0, S.owned[c.id].size / c.n0 - 1.5) * 6;
     c.stab = Math.max(0, Math.min(100, c.stab + (tgt - c.stab) * .02));
     if (c.stab < 12) { c.gov = "Military dictatorship"; c.stab = 40; say(`A military coup seizes power in ${nm(c)}`); if (c.id === S.me) toast("Military coup!"); }
     if (c.id !== S.me && (S.day + c.id) % 3 === 0 && c.alive) aiOrders(c);
@@ -513,12 +513,14 @@ function aiMonth(c) {
   if (c.q.length < 3 + (c.civ / 8 | 0) && c.gold > rev(c) * 90) build(c.id, c.civ <= c.mil * 1.3 ? "civ" : rnd() < .5 ? "mil" : rnd() < .5 ? "nav" : "air");
   if (!c.res) { const k = Object.keys(TECH); c.res = k[rnd() * k.length | 0]; }
   const nb = new Set(); for (const p of S.owned[c.id]) for (const q of adj[p]) { const o = S.own[q]; if (o !== c.id) nb.add(o); }
-  if (S.enm[c.id].size < 1 + Math.ceil(S.diff) && c.stab > 25 && S.day > (S.diff > 2 ? 5 : 20)) {
-    let best = -1, bs = 0; const thr = Math.max(.5, 1.6 / Math.sqrt(S.diff));
+  if (S.enm[c.id].size < Math.min(3, 1 + Math.ceil(S.diff)) && c.stab > 25 && S.day > (S.diff > 2 ? 5 : 20)) {
+    let best = -1, bs = 0; const thr = Math.max(1.1, 2 / Math.sqrt(S.diff));
     for (const n of nb) { const N = C[n]; if (!N.alive || allied(c.id, n) || atWar(c.id, n) || (N.tech.n >= 5 && S.diff < 3)) continue; const r = pw(c) / (pw(N) + .5); if (r > thr) { const s = r * (1 - rel(c.id, n) / 200); if (s > bs) { bs = s; best = n; } } }
     if (best >= 0 && rnd() < Math.min(.9, .02 * S.diff * c.aggr * (S.enm[c.id].size ? .5 : 1) * Math.min(3, Math.max(1, bs / 2)))) declare(c.id, best);
   }
-  for (const n of nb) { const N = C[n]; if (!N.alive || allied(c.id, n) || atWar(c.id, n) || S.enm[c.id].size >= 2 + Math.ceil(S.diff)) continue; let sur = 1; for (const p of S.owned[n]) { for (const q of adj[p]) if (S.own[q] !== n && S.own[q] !== c.id) { sur = 0; break; } if (!sur) break; } if (sur && pw(c) > pw(N) * .8 && rnd() < .15 * S.diff * c.aggr) declare(c.id, n); }
+  for (const n of nb) { const N = C[n]; if (!N.alive || allied(c.id, n) || atWar(c.id, n) || S.enm[c.id].size >= 3) continue; let sur = 1; for (const p of S.owned[n]) { for (const q of adj[p]) if (S.own[q] !== n && S.own[q] !== c.id) { sur = 0; break; } if (!sur) break; } if (sur && pw(c) > pw(N) * .8 && rnd() < .15 * S.diff * c.aggr) declare(c.id, n); }
+  for (const big of C) { if (!big.alive || big.id === c.id || S.owned[big.id].size < P.length * .1 || allied(c.id, big.id) || atWar(c.id, big.id)) continue; if ((nb.has(big.id) || c.al.some(a => atWar(a, big.id))) && pw(c) > pw(big) * .25 && S.enm[c.id].size < 3 && rnd() < .25) declare(c.id, big.id); }
+  if (S.owned[c.id].size > c.n0 * 1.6 && c.stab < 45 && rnd() < .5) { const f = [...S.owned[c.id]].filter(p => P[p].c !== c.id && C[P[p].c].alive); if (f.length) { const p = f[rnd() * f.length | 0]; give(p, P[p].c); say(`${nm(C[P[p].c])} regains a province after unrest in ${nm(c)}`); } }
   if (rnd() < .06) { const l = [...nb].filter(n => C[n].alive && n !== S.me && !allied(c.id, n) && !atWar(c.id, n) && rel(c.id, n) > 20); if (l.length) ally(c.id, l[rnd() * l.length | 0]); }
 }
 const EVS = [
