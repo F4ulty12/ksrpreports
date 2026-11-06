@@ -240,7 +240,7 @@ const atWar = (a, b) => S.enm[a].has(b), allied = (a, b) => C[a].al.includes(b) 
 const rev = c => c.gdp * c.tax / 365 * (.6 + c.stab / 150) * (1 + .02 * c.tech.f) * (1 + .004 * S.rc[c.id]) * (1 - Math.min(.5, .05 * c.blk));
 const net = c => rev(c) * (1 - .25 * c.div / c.div0);
 const dcost = c => rev(c) * 20 / (c.div0 * .15 + 1);
-const gmax = p => { const o = S.own[p], c = C[o]; return (.4 + c.div0 * .5 / c.n0) * TM[P[p].t] * (1 + .3 * S.fort[p]) * (1 + .06 * c.tech.l) * (c.cap === p ? 1.4 : 1); };
+const gmax = p => { const o = S.own[p], c = C[o]; return Math.min(5, .4 + c.div0 * .5 / c.n0) * TM[P[p].t] * (1 + .3 * S.fort[p]) * (1 + .06 * c.tech.l) * (c.cap === p ? 1.4 : 1); };
 const dstr = () => new Date(DAY0 + S.day * 864e5).toISOString().slice(0, 10);
 const say = t => { S.log.unshift(`<small>${dstr()}</small> ${t}`); S.log.length = Math.min(S.log.length, 40); };
 const pw = c => c.div * (1 + .06 * c.tech.l);
@@ -422,13 +422,13 @@ function battles() {
   for (const g of Object.values(G)) {
     const A = C[g.o], B = C[g.d], q = g.q, aa = airPow(g.o, q), da = airPow(g.d, q), ab = 1 + .5 * aa / (aa + da + 2), db = 1 + .5 * da / (aa + da + 2);
     const ds = (S.bp.get(q) || []).filter(u => u.o === g.d || allied(u.o, g.d)), as = g.us.reduce((s, u) => s + u.n, 0);
-    const ap = as * (1 + .06 * A.tech.l), dp = ds.reduce((s, u) => s + u.n, 0) + S.gd[q];
+    const ap = as * (1 + .06 * A.tech.l), dp = Math.max(.001, ds.reduce((s, u) => s + Math.max(0, u.n), 0) + (S.gd[q] || 0));
     const dm = TM[P[q].t] * (1 + .3 * S.fort[q]) * (1 + .06 * B.tech.l) * (B.cap === q ? 1.3 : 1);
-    const dmgD = ap * .045 * ab * (.8 + rnd() * .4) / dm, dmgA = dp * .045 * db * (.8 + rnd() * .4);
+    const dmgD = ap * .06 * ab * (.8 + rnd() * .4) / dm, dmgA = dp * .06 * db * (.8 + rnd() * .4);
     for (const u of ds) u.n -= dmgD * u.n / dp; S.gd[q] = Math.max(0, S.gd[q] - dmgD * S.gd[q] / dp); S.hq[q] = 1;
     for (const u of g.us) u.n -= dmgA * u.n / as;
     const left = ds.reduce((s, u) => s + Math.max(0, u.n), 0) + S.gd[q];
-    if (left < .35) { const kk = S.cpg[q] = (S.cpg[q] || 0) + 1; if (kk >= 3 + 2 * S.fort[q]) { for (const u of ds) u.n = 0; S.cpg[q] = 0; capture(g.o, q); continue; } } else if (S.cpg[q] > 0) S.cpg[q]--;
+    if (left < .35) { const kk = S.cpg[q] = (S.cpg[q] || 0) + 1; if (kk >= 2 + S.fort[q]) { for (const u of ds) u.n = 0; S.cpg[q] = 0; capture(g.o, q); continue; } } else if (S.cpg[q] > 0) S.cpg[q]--;
     if (ap < dp * .45) for (const u of g.us) if (!u.amph) u.path = [{ x: P[u.p].x, y: P[u.p].y, p: u.p }];
     const by = {}; for (const u of g.us) if (u.n > 0) { const k = u.amph ? "x" : u.p, e = by[k] || (by[k] = { n: 0, p: u.p, x: u.x, y: u.y, am: !!u.amph }); e.n += u.n; }
     for (const k in by) { const e = by[k]; S.fr.push({ p: e.p, q, A: Math.round(e.n), D: Math.round(left), o: g.o, d: g.d, ax: e.am ? e.x : undefined, ay: e.y }); }
@@ -678,8 +678,8 @@ function frame() {
   raf = 0; if (!root || !mapCv) return;
   if (zt) { view.x += (zt.x - view.x) * .22; view.y += (zt.y - view.y) * .22; view.k += (zt.k - view.k) * .22; if (Math.abs(zt.k - view.k) < view.k * .002 && Math.abs(zt.x - view.x) < .5 && Math.abs(zt.y - view.y) < .5) { view = { ...zt }; zt = null; } else raf = requestAnimationFrame(frame); }
   const now = performance.now(), play = S.phase === "play" && !S.paused;
-  if (play && now - lastFr < 30) { raf = requestAnimationFrame(frame); return; } lastFr = now;
-  if (dirty) { if (now - lastPaint > (S.speed > 4 ? 700 : 400)) paint(); else setTimeout(req, 420); }
+  if (play && now - lastFr < 20) { raf = requestAnimationFrame(frame); return; } lastFr = now;
+  if (dirty) { if (now - lastPaint > (S.speed > 4 ? 600 : S.speed > 1 ? 350 : 220)) paint(); else setTimeout(req, 420); }
   const dpr = devicePixelRatio || 1, w = st.clientWidth, h = st.clientHeight, k = view.k;
   if (cv.width !== (w * dpr | 0) || cv.height !== (h * dpr | 0)) { cv.width = w * dpr; cv.height = h * dpr; }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = "#08111e"; ctx.fillRect(0, 0, w, h);
