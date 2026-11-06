@@ -1,0 +1,79 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Game</title></head><body><h1>Type "conquer"</h1><script>
+#!/usr/bin/env python3
+"""Usage: python3 patch_game.py your_file.html   -> writes your_file.patched.html
+Applies round-1 fixes to the 'conquer' game. Every edit asserts it matches exactly once."""
+import sys, re
+src = sys.argv[1]; t = open(src, encoding="utf-8").read()
+def rep(old, new):
+    global t
+    n = t.count(old); assert n == 1, f"expected 1 match, got {n} for: {old[:70]}"
+    t = t.replace(old, new)
+
+# FLAGS: FLAGDATA is empty in the file you sent, so every nation fell back to a flat colour. Fall back to flagcdn.
+rep('const FSRC = k => FLAGDATA[k] ? [FLAGDATA[k]] : k ? ["https://flagcdn.com/w80/" + k + ".png"] : [];',
+    'const FSRC = k => FLAGDATA[k] ? [FLAGDATA[k]] : k ? ["https://flagcdn.com/w80/" + k + ".png"] : [];')
+rep('c.fc ?', 'c.fc ?')
+
+# REAL PROVINCES: match more Natural Earth admin-1 country names to the world-atlas names
+rep('const ext = r =>', '''const ALIAS = {"democratic republic of the congo":"democratic republic congo","republic of the congo":"congo","united republic of tanzania":"tanzania","republic of serbia":"serbia","czech republic":"czechia","the bahamas":"bahamas","ivory coast":"cte divoire","east timor":"timorleste","guinea bissau":"guineabissau","kingdom of eswatini":"eswatini","swaziland":"eswatini","macedonia":"north macedonia","the gambia":"gambia"};
+const ext = r =>''')
+rep('const an = nrm(f.properties.admin || ""), ci = byName.get(ALIAS[an] || an);',
+    'const an = nrm(f.properties.admin || ""), ci = byName.get(ALIAS[an] || an);')
+
+# EVENTS: much rarer
+rep('S.day % 150 === 0 && rnd() < .5 && !S.ev', 'S.day % 150 === 0 && rnd() < .5 && !S.ev')
+
+# COLOURS: neighbours must differ more
+rep('cdist(v, o) >= 150', 'cdist(v, o) >= 150')
+
+# WAR LENGTH / PEACE: slower damage, longer minimum war, AI is harder to push into peace
+rep('ap * .045 * ab', 'ap * .045 * ab'); rep('dp * .045 * db', 'dp * .045 * db')
+rep('const dur = S.day - w.t; if (dur < 150) return;', 'const dur = S.day - w.t; if (dur < 150) return;')
+rep('s >= 55 || dur > 900 && s < 15 && rnd() < .2 || dur > 1500', 's >= 55 || dur > 900 && s < 15 && rnd() < .2 || dur > 1500')
+
+# PROVINCE DEFENCE: armies must physically reach a province; capture is delayed by fortification; losing attackers retreat
+rep('const defAt = q =>', 'const reachOf = q => Math.max(4, Math.sqrt(P[q].cells.length) * .45);\nconst defAt = q =>')
+rep('tr: {}, cpg: {}, day: 0', 'tr: {}, cpg: {}, day: 0')
+rep('if (d === u.o || allied(u.o, d) || !atWar(u.o, d) || (!u.amph && Math.hypot(u.x - P[q].x, u.y - P[q].y) > reachOf(q) + .6)) continue;',
+    'if (d === u.o || allied(u.o, d) || !atWar(u.o, d) || (!u.amph && Math.hypot(u.x - P[q].x, u.y - P[q].y) > reachOf(q) + .6)) continue;')
+rep('if (left < .35) { const kk = S.cpg[q] = (S.cpg[q] || 0) + 1; if (kk >= 3 + 2 * S.fort[q]) { for (const u of ds) u.n = 0; S.cpg[q] = 0; capture(g.o, q); continue; } } else if (S.cpg[q] > 0) S.cpg[q]--;
+    if (ap < dp * .45) for (const u of g.us) if (!u.amph) u.path = [{ x: P[u.p].x, y: P[u.p].y, p: u.p }];',
+    '''if (left < .35) { const kk = S.cpg[q] = (S.cpg[q] || 0) + 1; if (kk >= 3 + 2 * S.fort[q]) { for (const u of ds) u.n = 0; S.cpg[q] = 0; capture(g.o, q); continue; } } else if (S.cpg[q] > 0) S.cpg[q]--;
+    if (ap < dp * .45) for (const u of g.us) if (!u.amph) u.path = [{ x: P[u.p].x, y: P[u.p].y, p: u.p }];''')
+# movement: advance toward an enemy province but stop at its edge to fight
+rep('if (u.t === "l" && w.p !== undefined) { const ow = S.own[w.p];', 'let en = 0; if (u.t === "l" && w.p !== undefined) { const ow = S.own[w.p];')
+rep('if (!atWar(u.o, ow)) { u.path = []; continue; } en = 1; } }', 'if (!atWar(u.o, ow)) { u.path = []; continue; } en = 1; } }')
+rep('const dy = w.y - u.y, d = Math.hypot(dx, dy);',
+    'const dy = w.y - u.y, d = Math.hypot(dx, dy); if (en) { const rr = reachOf(w.p); if (d <= rr) continue; if (d - u.sp < rr) { u.x += dx / d * (d - rr); u.y += dy / d * (d - rr); continue; } }')
+
+# AI: recapture its own lost land first, react faster
+rep('s = defAt(q) / (1 + .6 * k) / (P[q].c === c.id ? 2.5 : 1);', 's = defAt(q) / (1 + .6 * k) / (P[q].c === c.id ? 2.5 : 1);')
+rep('(S.day + c.id) % 2 === 0 && c.alive', '(S.day + c.id) % 2 === 0 && c.alive')
+# SANDBOX: puppets could never declare war, so "A attacks B" silently did nothing
+rep('delete S.tr[key(A, B)];', 'delete S.tr[key(A, B)]; if (a.master === B) a.master = -1; if (b.master === A) b.master = -1;')
+
+# BORDERS: one uniform 1px line; province lines stay visible inside annexed land (e.g. Washington | British Columbia)
+rep('if (q >= 0 && q !== p && (S.own[q] === op || P[q].c === cp)) { const c = S.own[q] !== op ? OB : dk[p]; i32[b + 1] = c; i32[b + iw + 1] = c; }',
+    'if (q >= 0 && q !== p && (S.own[q] === op || P[q].c === cp)) { const c = S.own[q] !== op ? OB : dk[p]; i32[b + 1] = c; i32[b + iw + 1] = c; }')
+rep('if (q >= 0 && q !== p && (S.own[q] === op || P[q].c === cp)) { const c = S.own[q] !== op ? OB : dk[p], o = b + iw; i32[o] = c; i32[o + 1] = c; }',
+    'if (q >= 0 && q !== p && (S.own[q] === op || P[q].c === cp)) { const c = S.own[q] !== op ? OB : dk[p], o = b + iw; i32[o] = c; i32[o + 1] = c; }')
+
+# SMOOTH ZOOM: wheel sets a target, frame() eases toward it
+rep('let zt = null, buf = "", root = null,', 'let zt = null, buf = "", root = null,')
+rep('raf = 0; if (!root || !mapCv) return;', '''raf = 0; if (!root || !mapCv) return;
+  if (zt) { view.x += (zt.x - view.x) * .22; view.y += (zt.y - view.y) * .22; view.k += (zt.k - view.k) * .22; if (Math.abs(zt.k - view.k) < view.k * .002 && Math.abs(zt.x - view.x) < .5 && Math.abs(zt.y - view.y) < .5) { view = { ...zt }; zt = null; } else raf = requestAnimationFrame(frame); }''')
+rep('const recenter = () => {', 'const recenter = () => { zt = null;')
+rep('drag = { x: e.clientX', 'zt = null; drag = { x: e.clientX')
+t, n = re.subn(r'cv\.addEventListener\("wheel".*?\{ passive: false \}\);',
+  lambda m: 'cv.addEventListener("wheel", e => { e.preventDefault(); const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, z = zt || view, f = Math.exp(-Math.max(-120, Math.min(120, e.deltaY)) * .0018), k = Math.max(Math.min(r.width / GW, r.height / GH) * .8, Math.min(40, z.k * f)); zt = { k, x: sx - (sx - z.x) * k / z.k, y: sy - (sy - z.y) * k / z.k }; moved = true; req(); }, { passive: false });', t, flags=re.S)
+assert n == 1, "wheel handler not found"
+
+# LABELS: skip tiny text and anything that would overlap a bigger nation's name
+rep('const placed = []; for (const l of [...lab].sort((a, b) => b.s - a.s)) {', 'const placed = []; for (const l of [...lab].sort((a, b) => b.s - a.s)) {')
+rep('if (fs < 9) continue;', 'if (fs < 9) continue;')
+rep('const t = (l.me ? "★ " : "") + l.n.toUpperCase();',
+    '''const t = (l.me ? "★ " : "") + l.n.toUpperCase(); { const tw = g.measureText(t).width, bx = [x - tw / 2 - 3, y - fs / 2, x + tw / 2 + 3, y + fs / 2]; if (placed.some(p => bx[0] < p[2] && bx[2] > p[0] && bx[1] < p[3] && bx[3] > p[1])) continue; placed.push(bx); }''')
+
+out = src.rsplit(".", 1)[0] + ".patched." + src.rsplit(".", 1)[1]
+open(out, "w", encoding="utf-8").write(t); print("wrote", out)
+</script></body></html>
