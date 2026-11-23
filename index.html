@@ -578,7 +578,7 @@ body.maintenance .card { display: none; }
   <div class="card-sub">Report a staff member, or community member in KSRP.</div>
 
   <div class="notice">
-    We'll send you status updates on this report (received, claimed, accepted, or denied) via a Discord DM. Your username and ID here are only used to contact you for more information & updates.
+    We'll send you status updates on this report (received, claimed, accepted, or denied) via a Discord DM. Your username and ID here are only used to contact you for more information & updates. <strong>After you submit, we'll DM you to confirm it was you. Your report is only sent to staff once you click confirm, so make sure your DMs are open.</strong>
   </div>
 
 <div class="form-group">
@@ -668,7 +668,7 @@ body.maintenance .card { display: none; }
   </div>
 
   <button class="submit-btn" id="submit-btn" onclick="submitReport()">Submit Report</button>
-  <div class="success-msg" id="rep-success">✅ Report submitted. We'll review it shortly.</div>
+  <div class="success-msg" id="rep-success">📩 Check your Discord DMs to confirm your report.</div>
   <div class="error-msg" id="rep-error">❌ Something went wrong submitting your report. Please try again.</div>
 
   </div><!-- end #panel-make -->
@@ -1268,11 +1268,9 @@ window.submitReport = async function () {
     selectedFiles = [];
     renderPreviews();
 
-    successEl.textContent =
-      "✅ " +
-      (data?.reportId
-        ? `Report submitted (ID: ${data.reportId})`
-        : "Report submitted. We'll review it shortly.");
+    successEl.textContent = data?.pending
+      ? "📩 Almost done! We just sent you a Discord DM. Click \"Yes, it was me\" within 15 minutes to send your report to staff. It will not be submitted until you confirm."
+      : "✅ Report submitted. We'll review it shortly.";
 
     successEl.style.display = "block";
 
